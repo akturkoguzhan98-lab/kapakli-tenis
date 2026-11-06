@@ -16,7 +16,7 @@
   ],
   "vars": {
     // Sitenin adresi (karne bildirimi bağlantısı için). Alan adınızı bağlayınca güncelleyin.
-    "APP_URL": "https://kapakli-tenis.workers.dev"
+    "APP_URL": "https://kapakli-tenis.akturkoguzhan98.workers.dev"
   },
   "observability": { "enabled": true }
 }
