@@ -10,7 +10,7 @@
       "binding": "DB",
       "database_name": "kapakli-tenis",
       // Cloudflare panelinde D1 veritabanını oluşturunca verilen kimlikle değiştirin
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "bbc260fc-0c0e-4cc3-9d26-cc5f59371c63",
       "migrations_dir": "migrations"
     }
   ],
