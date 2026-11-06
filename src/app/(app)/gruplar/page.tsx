@@ -7,7 +7,7 @@ import { Badge, Card, Empty, PageHeader, TableWrap } from "@/components/ui";
 export default async function GroupsPage() {
   await requireUser("ADMIN");
   const groups = await db.group.findMany({
-    include: { coach: true, court: true, _count: { select: { members: true } } },
+    include: { coach: true, court: true, _count: { select: { members: { where: { student: { active: true } } } } } },
     orderBy: [{ active: "desc" }, { dayOfWeek: "asc" }, { startTime: "asc" }],
   });
   return (

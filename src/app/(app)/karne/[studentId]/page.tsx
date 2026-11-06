@@ -81,7 +81,7 @@ export default async function KarnePage({ params, searchParams }: { params: Prom
               </div>
               <div className="text-right text-sm">
                 <div className="text-xs text-white/65">Genel ortalama</div>
-                <div className="text-2xl font-semibold tabular-nums">{average(parseScores(e.scores))?.toFixed(1).replace(".", ",")}<span className="text-sm text-white/45">/5</span></div>
+                <div className="text-2xl font-semibold tabular-nums">{average(parseScores(e.scores))?.toFixed(1).replace(".", ",")}<span className="text-sm text-white/60">/5</span></div>
                 <div className="text-xs text-white/65">Antrenör: {e.coach?.name ?? "—"}</div>
               </div>
             </header>

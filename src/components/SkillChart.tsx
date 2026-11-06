@@ -35,7 +35,7 @@ export function SkillChart({ current, previous, previousLabel }: { current: Scor
                       )}
                     </div>
                     <span className="text-right text-sm tabular-nums">
-                      <b>{v ?? "—"}</b><span className="text-white/45">/5</span>
+                      <b>{v ?? "—"}</b><span className="text-white/60">/5</span>
                       {delta !== null && delta !== 0 && (
                         <span className={`ml-1.5 text-xs font-medium ${delta > 0 ? "text-lime-200" : "text-red-300"}`}>
                           {delta > 0 ? "▲" : "▼"}{Math.abs(delta)}
@@ -49,7 +49,7 @@ export function SkillChart({ current, previous, previousLabel }: { current: Scor
           </div>
         ))}
       </div>
-      <div className="mt-3 grid grid-cols-[minmax(0,9rem)_1fr_4.5rem] gap-3 text-[11px] text-white/45 sm:grid-cols-[12rem_1fr_6rem]" aria-hidden>
+      <div className="mt-3 grid grid-cols-[minmax(0,9rem)_1fr_4.5rem] gap-3 text-[11px] text-white/60 sm:grid-cols-[12rem_1fr_6rem]" aria-hidden>
         <span />
         <div className="flex justify-between"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
         <span />

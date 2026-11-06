@@ -28,7 +28,7 @@ export async function daySchedule(date: string, opts: { coachId?: string; studen
     include: {
       coach: true,
       court: true,
-      _count: { select: { members: true } },
+      _count: { select: { members: { where: { student: { active: true } } } } },
       lessons: { where: { date }, select: { id: true } },
     },
   });

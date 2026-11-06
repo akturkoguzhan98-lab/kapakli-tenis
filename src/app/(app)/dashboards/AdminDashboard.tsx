@@ -57,7 +57,7 @@ export default async function AdminDashboard() {
         </div>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-5">
+      <div className="grid gap-6 lg:grid-cols-5 lg:items-start">
         <Card title="Bugünün programı" className="lg:col-span-3" actions={<Link href="/program" className="link text-xs">Haftalık</Link>}>
           <ScheduleList items={schedule} date={today} showAttendance />
         </Card>

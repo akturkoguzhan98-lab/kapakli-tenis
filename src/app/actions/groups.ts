@@ -51,6 +51,11 @@ export async function updateGroup(_: ActionState, fd: FormData): Promise<ActionS
   const id = str(fd, "id");
   const r = await readGroup(fd, id);
   if ("error" in r) return r;
+  // Kontenjan, gruptaki aktif öğrenci sayısının altına indirilemez
+  const activeMembers = await db.groupMember.count({ where: { groupId: id, student: { active: true } } });
+  if (r.data.capacity < activeMembers) {
+    return { error: `Grupta ${activeMembers} aktif öğrenci var; kontenjan en az ${activeMembers} olmalı. Önce öğrenci çıkarın.` };
+  }
   await db.group.update({ where: { id }, data: { ...r.data, active: fd.get("active") === "on" } });
   revalidatePath("/gruplar");
   revalidatePath(`/gruplar/${id}`);
@@ -62,7 +67,7 @@ export async function addMember(_: ActionState, fd: FormData): Promise<ActionSta
   const groupId = str(fd, "groupId");
   const studentId = str(fd, "studentId");
   if (!studentId) return { error: "Öğrenci seçin." };
-  const group = await db.group.findUnique({ where: { id: groupId }, include: { _count: { select: { members: true } } } });
+  const group = await db.group.findUnique({ where: { id: groupId }, include: { _count: { select: { members: { where: { student: { active: true } } } } } } });
   if (!group) return { error: "Grup bulunamadı." };
   if (group._count.members >= group.capacity) return { error: `Grup kontenjanı (${group.capacity}) dolu.` };
   await db.groupMember.upsert({

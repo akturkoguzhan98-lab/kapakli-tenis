@@ -9,6 +9,7 @@ import { addDays, addMonths, currentPeriod, dayOfWeek, minutesBetween, todayStr 
 let db: PrismaClient;
 
 async function main() {
+  await db.loginAttempt.deleteMany();
   await db.notification.deleteMany();
   await db.evaluation.deleteMany();
   await db.setting.deleteMany();

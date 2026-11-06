@@ -13,7 +13,7 @@ export default async function CoachDashboard({ user }: { user: CurrentUser }) {
     daySchedule(addDays(today, 1), { coachId: user.id }),
     db.group.findMany({
       where: { coachId: user.id, active: true },
-      include: { court: true, _count: { select: { members: true } } },
+      include: { court: true, _count: { select: { members: { where: { student: { active: true } } } } } },
       orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
     }),
   ]);
@@ -28,7 +28,7 @@ export default async function CoachDashboard({ user }: { user: CurrentUser }) {
         <Stat accent="red" icon="check" label="Yoklama bekleyen" value={missing} tone={missing ? "red" : undefined} href="/yoklama" />
         <Stat accent="blue" icon="users" label="Gruplarımdaki öğrenci" value={students} />
       </div>
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
         <Card title="Bugün"><ScheduleList items={todayItems} date={today} showAttendance /></Card>
         <Card title="Yarın"><ScheduleList items={tomorrowItems} date={addDays(today, 1)} /></Card>
         <Card title="Gruplarım" className="lg:col-span-2" padded={false}>

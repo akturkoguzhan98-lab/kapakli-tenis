@@ -24,7 +24,7 @@ export default async function TakeAttendance({ params, searchParams }: {
   const sp = await searchParams;
   const g = await db.group.findUnique({
     where: { id: groupId },
-    include: { coach: true, court: true, members: { include: { student: true }, orderBy: { student: { firstName: "asc" } } } },
+    include: { coach: true, court: true, members: { where: { student: { active: true } }, include: { student: true }, orderBy: { student: { firstName: "asc" } } } },
   });
   if (!g) notFound();
   if (user.role === "COACH" && g.coachId !== user.id) redirect("/yoklama");

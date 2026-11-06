@@ -214,3 +214,11 @@ model Setting {
   key   String @id
   value String
 }
+
+// Hatalı giriş denemeleri (kaba kuvvetle şifre denemeyi engellemek için)
+model LoginAttempt {
+  email       String    @id
+  count       Int       @default(0)
+  firstAt     DateTime  @default(now())
+  lockedUntil DateTime?
+}

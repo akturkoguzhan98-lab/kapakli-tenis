@@ -45,7 +45,7 @@ export default async function CoachReportPage({ params, searchParams }: { params
               <thead><tr><th>Tarih</th><th>Saat</th><th>Ders</th><th>Tür</th><th className="text-right">Süre</th><th className="text-right">Gelen</th><th>Durum</th></tr></thead>
               <tbody>
                 {r.rows.map((x, i) => (
-                  <tr key={i} className={x.status === "PLANLI" ? "text-white/45" : ""}>
+                  <tr key={i} className={x.status === "PLANLI" ? "text-white/60" : ""}>
                     <td className="whitespace-nowrap">{dateLabel(x.date)}</td>
                     <td className="font-mono text-xs">{x.start}–{x.end}</td>
                     <td>{x.title}</td>

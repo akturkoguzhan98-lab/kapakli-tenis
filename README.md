@@ -111,6 +111,12 @@ Akademi için ayrı bir numarayla **WhatsApp Business** uygulaması kullanmanız
 
 Hangi velinin mesaj alacağı (bildirim izni) **Kullanıcılar** sayfasından ayarlanır. İzni olmayan veliye mesaj hazırlanmaz.
 
+## Güvenlik
+
+- Yetki kontrolleri sunucu tarafında yapılır; antrenör yalnızca kendi gruplarını, veli yalnızca kendi çocuklarını görür.
+- Aynı e-postayla 15 dakika içinde 5 hatalı giriş denemesinde hesap 15 dakika kilitlenir.
+  Yönetici, Kullanıcılar sayfasında o hesabı kaydederek kilidi hemen kaldırabilir.
+
 ## Tasarım
 
 Koyu, cam görünümlü (glassmorphism) tema. Arka plan sahnesi `src/components/CourtScene.tsx` içindedir;

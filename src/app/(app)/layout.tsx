@@ -3,6 +3,7 @@ import { ROLE_LABEL } from "@/lib/labels";
 import { logout } from "@/app/actions/auth";
 import { Nav, NavItem } from "@/components/Nav";
 import { CourtScene } from "@/components/CourtScene";
+import { TableLabels } from "@/components/TableLabels";
 
 const NAV: Record<string, NavItem[]> = {
   ADMIN: [
@@ -15,8 +16,8 @@ const NAV: Record<string, NavItem[]> = {
     { href: "/aidatlar", label: "Aidatlar", icon: "wallet" },
     { href: "/bildirimler", label: "WhatsApp", icon: "chat" },
     { href: "/karne", label: "Karne", icon: "star" },
-    { href: "/raporlar", label: "Ders saatleri", icon: "clock" },
-    { href: "/kullanicilar", label: "Kullanıcılar", icon: "user" },
+    { href: "/raporlar", label: "Ders saati raporu", icon: "clock", secondary: true },
+    { href: "/kullanicilar", label: "Kullanıcılar", icon: "user", secondary: true },
   ],
   COACH: [
     { href: "/", label: "Bugün", icon: "home" },
@@ -38,6 +39,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen">
       <CourtScene />
+      <TableLabels />
       <Nav items={NAV[user.role]} user={user.name} roleLabel={ROLE_LABEL[user.role]} logout={logout} />
       <main className="relative z-10 px-3 pb-10 pt-6 sm:px-5 lg:pt-8 print:p-0">
         <div className="mx-auto max-w-[1400px] lg:px-3">{children}</div>

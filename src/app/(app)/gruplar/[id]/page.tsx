@@ -7,7 +7,7 @@ import { fullName } from "@/lib/format";
 import { DAY_LABEL, LEVEL_LABEL } from "@/lib/labels";
 import { addMember, removeMember, updateGroup } from "@/app/actions/groups";
 import { ActionForm, ConfirmButton, SubmitButton } from "@/components/ActionForm";
-import { Card, Empty, PageHeader } from "@/components/ui";
+import { Badge, Card, Empty, PageHeader } from "@/components/ui";
 import { GroupFields } from "@/components/GroupFields";
 
 export default async function GroupPage({ params }: { params: Promise<{ id: string }> }) {
@@ -21,6 +21,7 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
     },
   });
   if (!g) notFound();
+  const activeCount = g.members.filter((m) => m.student.active).length;
   const [coaches, courts, candidates] = await Promise.all([
     db.user.findMany({ where: { role: "COACH", active: true }, orderBy: { name: "asc" } }),
     db.court.findMany({ where: { active: true }, orderBy: { name: "asc" } }),
@@ -41,7 +42,7 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
       />
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-6">
-          <Card title={`Öğrenciler (${g.members.length}/${g.capacity})`}>
+          <Card title={`Öğrenciler (${activeCount}/${g.capacity})`}>
             {g.members.length === 0 ? <Empty>Grupta öğrenci yok.</Empty> : (
               <ul className="divide-y divide-white/10">
                 {g.members.map(({ student: s }) => (
@@ -49,6 +50,7 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
                     <span>
                       <Link href={`/ogrenciler/${s.id}`} className="link">{fullName(s)}</Link>
                       <span className="ml-2 text-xs text-white/65">{ageFrom(s.birthDate) ?? "?"} yaş · {LEVEL_LABEL[s.level]}</span>
+                      {!s.active && <span className="ml-2"><Badge>Pasif · sayılmıyor</Badge></span>}
                     </span>
                     <form action={removeMember}>
                       <input type="hidden" name="groupId" value={g.id} />
@@ -59,7 +61,7 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
                 ))}
               </ul>
             )}
-            {g.members.length < g.capacity && (
+            {activeCount < g.capacity && (
               <ActionForm action={addMember} className="mt-4 border-t border-white/10 pt-4">
                 <input type="hidden" name="groupId" value={g.id} />
                 <div className="flex gap-2">

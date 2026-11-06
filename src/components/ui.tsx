@@ -17,7 +17,7 @@ export function Card({ title, actions, children, className = "", padded = true }
   title?: string; actions?: React.ReactNode; children: React.ReactNode; className?: string; padded?: boolean;
 }) {
   return (
-    <section className={`card ${className}`}>
+    <section className={`card min-w-0 ${className}`}>
       {title && (
         <div className="flex items-center justify-between gap-2 border-b border-white/10 px-4 py-3">
           <h2 className="text-sm font-semibold text-white">{title}</h2>

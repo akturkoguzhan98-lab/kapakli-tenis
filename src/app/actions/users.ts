@@ -61,6 +61,8 @@ export async function updateUser(_: ActionState, fd: FormData): Promise<ActionSt
       ...(password ? { passwordHash: await hashPassword(password) } : {}),
     },
   });
+  // Yönetici hesabı kaydedince kullanıcının giriş kilidi (varsa) kalkar
+  await db.loginAttempt.deleteMany({ where: { email } });
   revalidatePath("/kullanicilar");
   return { ok: "Kaydedildi." };
 }

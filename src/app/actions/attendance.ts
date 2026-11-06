@@ -15,7 +15,7 @@ export async function saveAttendance(_: ActionState, fd: FormData): Promise<Acti
   if (!isValidDate(date)) return { error: "Geçersiz tarih." };
   if (date > todayStr()) return { error: "Gelecek tarihli derse yoklama alınamaz." };
 
-  const group = await db.group.findUnique({ where: { id: groupId }, include: { members: true } });
+  const group = await db.group.findUnique({ where: { id: groupId }, include: { members: { where: { student: { active: true } } } } });
   if (!group) return { error: "Grup bulunamadı." };
   if (user.role === "COACH" && group.coachId !== user.id) return { error: "Bu grup size ait değil." };
   if (dayOfWeek(date) !== group.dayOfWeek) return { error: "Bu grubun o gün dersi yok." };

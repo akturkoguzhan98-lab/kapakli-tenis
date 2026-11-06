@@ -33,7 +33,7 @@
   }
   .input {
     @apply block w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm text-white shadow-sm
-      placeholder:text-white/40 focus:border-lime-300 focus:outline-none focus:ring-2 focus:ring-lime-300/30
+      placeholder:text-white/50 focus:border-lime-300 focus:outline-none focus:ring-2 focus:ring-lime-300/30
       disabled:opacity-60;
   }
   .input option, .input optgroup { background: #10241d; color: #fff; }
@@ -107,6 +107,27 @@
 @media (prefers-reduced-motion: reduce) {
   .tb-roll, .tb-float, .tb-bounce, .tb-fade, .tb-rise, .tb-rise-2 { animation: none; }
   .tb-draw { animation: none; stroke-dashoffset: 0; }
+}
+
+/* Telefonda tablolar: her satır bir kart, sütun başlığı solda (etiketleri TableLabels.tsx yazar) */
+@media (max-width: 640px) {
+  .table thead { display: none; }
+  .table, .table tbody { display: block; width: 100%; }
+  .table tr { display: block; padding: 12px 14px; border-bottom: 1px solid rgba(255, 255, 255, .08); }
+  .table tr:last-child { border-bottom: 0; }
+  /* Başlık solda (float), değer(ler) sağda alt alta — hücrede birden çok bilgi olsa da düzgün durur */
+  .table td { display: flow-root; padding: 3px 0; border: 0 !important; text-align: right; }
+  .table td > form, .table td > div.flex { display: inline-flex; justify-content: flex-end; }
+  .table td::before {
+    content: attr(data-label); float: left; margin-right: 14px; max-width: 42%; text-align: left;
+    font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: rgba(255, 255, 255, .6);
+    padding-top: 2px;
+  }
+  .table td[data-label=""]::before { display: none; }
+  /* İlk hücre kartın başlığı olur */
+  .table td:first-child { display: block; text-align: left; padding-bottom: 6px; font-size: 15px; }
+  .table td:first-child::before { display: none; }
+  .table td > * { text-align: inherit; }
 }
 
 /* Yazdırma: beyaz zemin, siyah yazı, efektler kapalı (karne, raporlar) */

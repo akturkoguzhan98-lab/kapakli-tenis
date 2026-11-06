@@ -51,7 +51,7 @@ export default async function CourtsPage({ searchParams }: { searchParams: Promi
         </div>
       );
     }
-    return <div className="h-full rounded border border-dashed border-white/15 px-1.5 py-1 text-[11px] text-white/45">Boş</div>;
+    return <div className="h-full rounded border border-dashed border-white/15 px-1.5 py-1 text-[11px] text-white/60">Boş</div>;
   }
 
   const visibleRes = user.role === "PARENT" ? reservations.filter((r) => r.userId === user.id) : reservations;
@@ -80,7 +80,7 @@ export default async function CourtsPage({ searchParams }: { searchParams: Promi
                     <th className="w-14" style={{ width: 56 }} />
                     {courts.map((c) => (
                       <th key={c.id} className="text-left text-xs font-semibold text-white/75">
-                        {c.name}<div className="font-normal text-white/45">{SURFACE_LABEL[c.surface]}{c.indoor ? " · Kapalı" : ""}</div>
+                        {c.name}<div className="font-normal text-white/60">{SURFACE_LABEL[c.surface]}{c.indoor ? " · Kapalı" : ""}</div>
                       </th>
                     ))}
                   </tr>
@@ -178,7 +178,7 @@ export default async function CourtsPage({ searchParams }: { searchParams: Promi
               <ul className="mb-4 divide-y divide-white/10 text-sm">
                 {allCourts.map((c) => (
                   <li key={c.id} className="flex items-center justify-between py-2">
-                    <span className={c.active ? "" : "text-white/45 line-through"}>{c.name} <span className="text-xs text-white/65">· {SURFACE_LABEL[c.surface]}{c.indoor ? " · Kapalı" : ""}</span></span>
+                    <span className={c.active ? "" : "text-white/60 line-through"}>{c.name} <span className="text-xs text-white/65">· {SURFACE_LABEL[c.surface]}{c.indoor ? " · Kapalı" : ""}</span></span>
                     <form action={toggleCourt}><input type="hidden" name="id" value={c.id} /><button className="btn-secondary btn-sm">{c.active ? "Kapat" : "Aç"}</button></form>
                   </li>
                 ))}

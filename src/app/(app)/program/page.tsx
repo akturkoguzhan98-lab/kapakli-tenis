@@ -49,7 +49,7 @@ export default async function ProgramPage({ searchParams }: { searchParams: Prom
               <div className="text-xs text-white/65">{dateLabel(d, false)}</div>
             </div>
             <div className="flex-1 space-y-2 p-2">
-              {schedules[i].length === 0 && <div className="py-3 text-center text-xs text-white/45">—</div>}
+              {schedules[i].length === 0 && <div className="py-3 text-center text-xs text-white/60">—</div>}
               {schedules[i].map((it) => {
                 const color = it.kind === "GROUP"
                   ? "border-lime-300 bg-lime-300/15"

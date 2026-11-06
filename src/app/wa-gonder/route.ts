@@ -7,8 +7,14 @@ import { Candidate, karneReminder, lessonReminders, logManual, overdueDues, upco
 /**
  * Elle WhatsApp gönderimi: mesajı sunucuda yeniden üretir, geçmişe "elle gönderildi" olarak kaydeder
  * ve hazır metinle WhatsApp'a (wa.me) yönlendirir. Kullanıcı sadece WhatsApp'ta "Gönder"e basar.
+ * Kayıt oluşturduğu için sadece POST (form) ile çalışır: başka bir siteden gelen bağlantı tıklamasıyla
+ * tetiklenemez (oturum çerezi SameSite=Lax, çapraz site POST isteğinde gönderilmez).
  */
 export async function GET(req: NextRequest) {
+  return NextResponse.redirect(new URL("/", req.url));
+}
+
+export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user || user.role === "PARENT") return NextResponse.redirect(new URL("/", req.url));
   const q = req.nextUrl.searchParams;
@@ -36,5 +42,5 @@ export async function GET(req: NextRequest) {
     return new NextResponse("Mesaj bulunamadı ya da alıcının geçerli bir telefonu yok.", { status: 404, headers: { "Content-Type": "text/plain; charset=utf-8" } });
   }
   await logManual(c);
-  return NextResponse.redirect(c.waUrl);
+  return NextResponse.redirect(c.waUrl, 303);
 }
