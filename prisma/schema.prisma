@@ -1,0 +1,216 @@
+// Kapaklı Tenis Akademi — veritabanı şeması
+// Veritabanı: Cloudflare D1 (SQLite tabanlı). Tablolar migrations/ klasöründeki SQL ile oluşturulur.
+// Tarihler "YYYY-AA-GG", saatler "SS:DD" metni olarak tutulur (saat dilimi sorunu olmasın diye).
+
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "client" // Rust motoru yok; Cloudflare D1 adaptörüyle çalışır
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db" // kullanılmaz: uygulama Cloudflare D1 adaptörüyle bağlanır
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  phone         String?
+  passwordHash  String
+  role          String // ADMIN | COACH | PARENT
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  hourlyRate    Int      @default(0) // Antrenör saatlik ücreti (TL), ders saati raporunda hakediş için
+  notifyConsent Boolean  @default(true) // Veli WhatsApp bilgilendirme izni
+
+  children       Student[]      @relation("ParentChildren")
+  coachGroups    Group[]        @relation("CoachGroups")
+  reservations   Reservation[]  @relation("ReservationOwner")
+  coachLessons   Reservation[]  @relation("ReservationCoach")
+  lessons        Lesson[]
+  coachedLessons Lesson[]       @relation("LessonCoach")
+  evaluations    Evaluation[]
+  notifications  Notification[]
+}
+
+model Student {
+  id         String   @id @default(cuid())
+  firstName  String
+  lastName   String
+  birthDate  String?
+  phone      String?
+  level      String   @default("BASLANGIC") // BASLANGIC | ORTA | ILERI | PERFORMANS
+  monthlyFee Int      @default(0) // TL
+  notes      String?
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  parentId String?
+  parent   User?   @relation("ParentChildren", fields: [parentId], references: [id], onDelete: SetNull)
+
+  groups        GroupMember[]
+  attendances   Attendance[]
+  payments      Payment[]
+  reservations  Reservation[]
+  evaluations   Evaluation[]
+  notifications Notification[]
+}
+
+model Court {
+  id      String  @id @default(cuid())
+  name    String
+  surface String  @default("TOPRAK") // TOPRAK | SERT | CIM
+  indoor  Boolean @default(false)
+  active  Boolean @default(true)
+
+  groups       Group[]
+  reservations Reservation[]
+}
+
+// Haftalık tekrar eden grup dersi
+model Group {
+  id        String  @id @default(cuid())
+  name      String
+  level     String  @default("BASLANGIC")
+  dayOfWeek Int // 1=Pazartesi ... 7=Pazar
+  startTime String
+  endTime   String
+  capacity  Int     @default(6)
+  active    Boolean @default(true)
+
+  coachId String?
+  coach   User?   @relation("CoachGroups", fields: [coachId], references: [id], onDelete: SetNull)
+  courtId String?
+  court   Court?  @relation(fields: [courtId], references: [id], onDelete: SetNull)
+
+  members GroupMember[]
+  lessons Lesson[]
+}
+
+model GroupMember {
+  groupId   String
+  studentId String
+  group     Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@id([groupId, studentId])
+}
+
+// Bir grubun belirli bir tarihteki dersi (yoklama alınınca oluşur)
+model Lesson {
+  id        String   @id @default(cuid())
+  date      String
+  note      String?
+  createdAt DateTime @default(now())
+
+  groupId   String
+  group     Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  takenById String?
+  takenBy   User?   @relation(fields: [takenById], references: [id], onDelete: SetNull)
+  // Dersin yapıldığı andaki antrenör ve süre (grup sonradan değişse de rapor doğru kalsın)
+  coachId   String?
+  coach     User?   @relation("LessonCoach", fields: [coachId], references: [id], onDelete: SetNull)
+  minutes   Int?
+
+  attendances Attendance[]
+
+  @@unique([groupId, date])
+}
+
+model Attendance {
+  lessonId  String
+  studentId String
+  status    String // GELDI | GELMEDI | IZINLI
+  lesson    Lesson  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@id([lessonId, studentId])
+}
+
+// Kort rezervasyonu (kort kiralama veya özel ders)
+model Reservation {
+  id        String   @id @default(cuid())
+  date      String
+  startTime String
+  endTime   String
+  type      String // KIRALAMA | OZEL_DERS
+  status    String   @default("ONAYLI") // ONAYLI | BEKLEMEDE | IPTAL
+  note      String?
+  createdAt DateTime @default(now())
+
+  courtId   String
+  court     Court    @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation("ReservationOwner", fields: [userId], references: [id], onDelete: Cascade)
+  coachId   String?
+  coach     User?    @relation("ReservationCoach", fields: [coachId], references: [id], onDelete: SetNull)
+  studentId String?
+  student   Student? @relation(fields: [studentId], references: [id], onDelete: SetNull)
+
+  @@index([date, courtId])
+}
+
+// Aylık aidat
+model Payment {
+  id         String   @id @default(cuid())
+  period     String // "2026-11"
+  amount     Int // TL
+  dueDate    String
+  paidAmount Int      @default(0)
+  paidAt     String?
+  method     String? // NAKIT | KART | HAVALE
+  note       String?
+  createdAt  DateTime @default(now())
+
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, period])
+}
+
+// Öğrenci gelişim karnesi
+model Evaluation {
+  id        String   @id @default(cuid())
+  date      String
+  term      String // ör. "2026 Güz"
+  scores    String // JSON: { forehand: 3, backhand: 4, ... } (1-5)
+  strengths String?
+  improve   String?
+  goals     String?
+  createdAt DateTime @default(now())
+
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  coachId   String?
+  coach     User?   @relation(fields: [coachId], references: [id], onDelete: SetNull)
+
+  @@index([studentId, date])
+}
+
+// Gönderilen WhatsApp mesajlarının kaydı
+model Notification {
+  id         String   @id @default(cuid())
+  channel    String   @default("WHATSAPP")
+  kind       String // AIDAT | DERS | KARNE | GENEL
+  phone      String
+  body       String
+  status     String // GONDERILDI (API) | ELLE (wa.me ile elle) | TEST | HATA
+  error      String?
+  providerId String?
+  dedupeKey  String?  @unique // aynı hatırlatmanın iki kez gitmesini önler
+  createdAt  DateTime @default(now())
+
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  studentId String?
+  student   Student? @relation(fields: [studentId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+}
+
+// Düzenlenebilir ayarlar (mesaj şablonları, otomatik hatırlatma ayarları)
+model Setting {
+  key   String @id
+  value String
+}
