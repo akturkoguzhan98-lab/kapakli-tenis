@@ -1,5 +1,7 @@
-// Giriş ve kurulum sayfalarının arka planı: koyu yeşil zemin, silik kort çizgileri,
-// sağ alttan yuvarlanarak gelen büyük tenis topu ve yukarıdan düşüp seken küçük top.
+// Tenis temalı arka plan parçaları.
+// - TennisBackground: giriş/kurulum sayfaları (koyu yeşil, büyük hareketli toplar)
+// - AppBackground: panel içi sayfalar (açık zemin, çok silik çizgiler, soluk top — yazıları engellemez)
+// - SidebarDecor: sol menünün koyu zeminine silik kort çizgileri ve seken küçük top
 // Animasyonlar globals.css içindeki "tb-" sınıflarında; "hareketi azalt" ayarında kapanır.
 
 // Kort ölçüleri (metre): yarı uzunluk, yarı çift genişlik, yarı tek genişlik, servis çizgisi
@@ -14,7 +16,36 @@ const COURT_LINES: [number, number, number, number][] = [
   [-L, 0, -L + 0.3, 0], [L, 0, L - 0.3, 0], // orta işaretler
 ];
 
-function Ball({ id }: { id: string }) {
+/** Kuşbakışı kort çizgileri. vertical=true: kort dikey (dar alanlar için). */
+export function CourtLines({ color = "#fff", width = 0.08, vertical = false, className = "", posts = true, delay = 0.15 }: {
+  color?: string; width?: number; vertical?: boolean; className?: string; posts?: boolean; delay?: number;
+}) {
+  const P = (x: number, y: number) => (vertical ? [y, x] : [x, y]);
+  return (
+    <svg
+      className={`h-full w-full ${className}`}
+      viewBox={vertical ? "-10.5 -19 21 38" : "-19 -10.5 38 21"}
+      preserveAspectRatio="xMidYMid slice"
+      aria-hidden
+    >
+      <g stroke={color} strokeWidth={width} fill="none" strokeLinecap="square">
+        {COURT_LINES.map(([x1, y1, x2, y2], i) => {
+          const [ax, ay] = P(x1, y1), [bx, by] = P(x2, y2);
+          return (
+            <line key={i} x1={ax} y1={ay} x2={bx} y2={by} pathLength={1} className="tb-draw" style={{ animationDelay: `${delay + i * 0.07}s` }} />
+          );
+        })}
+      </g>
+      {posts &&
+        [-DW - 0.914, DW + 0.914].map((y) => {
+          const [cx, cy] = P(0, y);
+          return <circle key={y} cx={cx} cy={cy} r={0.22} fill="#2b2b2b" stroke={color} strokeWidth={width * 0.75} className="tb-fade" />;
+        })}
+    </svg>
+  );
+}
+
+export function Ball({ id }: { id: string }) {
   return (
     <svg viewBox="0 0 100 100" className="h-full w-full" aria-hidden>
       <defs>
@@ -44,22 +75,9 @@ export function TennisBackground() {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,#1f5a3a_0%,#0f2d1c_60%,#0a1f13_100%)]" />
 
       {/* Silik kort çizgileri (kalemle çiziliyormuş gibi belirir) */}
-      <svg className="absolute inset-0 h-full w-full opacity-[.14]" viewBox="-19 -10.5 38 21" preserveAspectRatio="xMidYMid slice">
-        <g stroke="#fff" strokeWidth="0.08" fill="none" strokeLinecap="square">
-          {COURT_LINES.map(([x1, y1, x2, y2], i) => (
-            <line
-              key={i}
-              x1={x1} y1={y1} x2={x2} y2={y2}
-              pathLength={1}
-              className="tb-draw"
-              style={{ animationDelay: `${0.15 + i * 0.07}s` }}
-            />
-          ))}
-        </g>
-        {[-DW - 0.914, DW + 0.914].map((y) => (
-          <circle key={y} cx={0} cy={y} r={0.22} fill="#2b2b2b" stroke="#fff" strokeWidth={0.06} className="tb-fade" />
-        ))}
-      </svg>
+      <div className="absolute inset-0 opacity-[.14]">
+        <CourtLines />
+      </div>
 
       {/* Büyük top: sağ alttan yuvarlanarak gelir, sonra hafifçe salınır */}
       <div className="absolute -bottom-[14vmin] -right-[12vmin] h-[62vmin] w-[62vmin]">
@@ -74,6 +92,48 @@ export function TennisBackground() {
       <div className="absolute left-[6vmin] top-[8vmin] h-[11vmin] w-[11vmin]">
         <div className="tb-bounce h-full w-full opacity-90 drop-shadow-[0_10px_18px_rgba(0,0,0,.45)]">
           <Ball id="tb-small" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Panel içi sayfaların arka planı. Sabit (kaydırınca yerinde durur), içeriğin ARKASINDA kalır.
+ * Çizgiler ve top çok soluk tutuldu; beyaz kartlar bunları zaten örter, yazılar her zaman okunur.
+ */
+export function AppBackground() {
+  return (
+    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden print:hidden lg:left-60" aria-hidden>
+      {/* Hafif yeşil ışık: üstte çok açık kort yeşili, aşağı doğru normal zemin */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_-10%,#e3f1e7_0%,rgba(250,250,249,0)_55%)]" />
+      {/* Çok silik kort çizgileri: sadece geniş ekranda, kenarlara doğru kaybolarak
+          (kart aralarında bağlantı çizgisi gibi algılanmasın diye) */}
+      <div className="absolute inset-0 hidden opacity-[.045] [mask-image:radial-gradient(ellipse_70%_65%_at_55%_55%,black_35%,transparent_100%)] md:block">
+        <CourtLines color="#1c5032" width={0.06} posts={false} />
+      </div>
+      {/* Sağ alttan taşan soluk top */}
+      <div className="absolute -bottom-[16vmin] -right-[14vmin] h-[46vmin] w-[46vmin] opacity-[.22]">
+        <div className="tb-float h-full w-full">
+          <div className="tb-roll h-full w-full">
+            <Ball id="tb-app" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Sol menünün altına silik dikey kort ve seken küçük top */
+export function SidebarDecor() {
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+      <div className="absolute inset-x-0 bottom-0 h-[55%] opacity-[.08] [mask-image:linear-gradient(to_top,black_40%,transparent)]">
+        <CourtLines vertical posts={false} width={0.1} delay={0.3} />
+      </div>
+      <div className="absolute bottom-32 right-5 h-9 w-9">
+        <div className="tb-bounce h-full w-full drop-shadow-[0_6px_10px_rgba(0,0,0,.5)]">
+          <Ball id="tb-side" />
         </div>
       </div>
     </div>

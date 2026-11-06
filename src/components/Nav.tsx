@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { SidebarDecor } from "./TennisBackground";
 
 export type NavItem = { href: string; label: string };
 
@@ -55,17 +56,19 @@ export function Nav({ items, user, roleLabel, logout }: {
       </header>
       {open && (
         <div className="fixed inset-x-0 top-[52px] bottom-0 z-20 flex flex-col justify-between overflow-y-auto bg-court-900 p-4 lg:hidden">
-          {links}
-          {footer}
+          <SidebarDecor />
+          <div className="relative z-10">{links}</div>
+          <div className="relative z-10">{footer}</div>
         </div>
       )}
       {/* Masaüstü yan menü */}
-      <aside className="fixed inset-y-0 left-0 hidden w-60 print:!hidden flex-col justify-between bg-court-900 p-4 lg:flex">
-        <div>
+      <aside className="fixed inset-y-0 left-0 z-20 hidden w-60 print:!hidden flex-col justify-between overflow-hidden bg-court-900 p-4 lg:flex">
+        <SidebarDecor />
+        <div className="relative z-10">
           <div className="mb-6 px-2 pt-1"><Brand /></div>
           {links}
         </div>
-        {footer}
+        <div className="relative z-10">{footer}</div>
       </aside>
     </>
   );

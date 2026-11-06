@@ -2,6 +2,7 @@ import { requireUser } from "@/lib/auth";
 import { ROLE_LABEL } from "@/lib/labels";
 import { logout } from "@/app/actions/auth";
 import { Nav, NavItem } from "@/components/Nav";
+import { AppBackground } from "@/components/TennisBackground";
 
 const NAV: Record<string, NavItem[]> = {
   ADMIN: [
@@ -36,8 +37,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const user = await requireUser();
   return (
     <div className="min-h-screen">
+      <AppBackground />
       <Nav items={NAV[user.role]} user={user.name} roleLabel={ROLE_LABEL[user.role]} logout={logout} />
-      <main className="px-4 py-6 lg:ml-60 lg:px-8 lg:py-8 print:ml-0 print:p-0">
+      <main className="relative z-10 px-4 py-6 lg:ml-60 lg:px-8 lg:py-8 print:ml-0 print:p-0">
         <div className="mx-auto max-w-6xl">{children}</div>
       </main>
     </div>
