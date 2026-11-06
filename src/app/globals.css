@@ -52,12 +52,19 @@
   .table tr:last-child td { @apply border-b-0; }
   .link { @apply font-medium text-lime-200 hover:text-lime-100 hover:underline; }
 
-  /* Renkli istatistik kutularının başlık şeritleri */
-  .accent-blue   { background: linear-gradient(140deg, rgba(96, 165, 250, .85), rgba(59, 90, 200, .5)); }
-  .accent-purple { background: linear-gradient(140deg, rgba(167, 139, 250, .9), rgba(109, 40, 217, .5)); }
-  .accent-gold   { background: linear-gradient(140deg, rgba(250, 204, 21, .85), rgba(202, 138, 4, .5)); }
-  .accent-green  { background: linear-gradient(140deg, rgba(74, 222, 128, .85), rgba(21, 128, 61, .5)); }
-  .accent-red    { background: linear-gradient(140deg, rgba(248, 113, 113, .9), rgba(185, 28, 28, .5)); }
+  /* Renkli cam istatistik kutuları: kutunun tamamı kendi renginde, aşağı doğru koyulaşır */
+  .tile {
+    @apply relative overflow-hidden rounded-2xl;
+    border: 1px solid rgba(255, 255, 255, .22);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .3);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+    backdrop-filter: blur(20px) saturate(150%);
+  }
+  .tile-blue   { background: linear-gradient(145deg, rgba(96, 165, 250, .62) 0%, rgba(96, 165, 250, .28) 55%, rgba(12, 24, 20, .55) 100%); }
+  .tile-purple { background: linear-gradient(145deg, rgba(167, 139, 250, .62) 0%, rgba(167, 139, 250, .28) 55%, rgba(12, 24, 20, .55) 100%); }
+  .tile-gold   { background: linear-gradient(145deg, rgba(250, 204, 21, .62) 0%, rgba(250, 204, 21, .28) 55%, rgba(12, 24, 20, .55) 100%); }
+  .tile-green  { background: linear-gradient(145deg, rgba(74, 222, 128, .58) 0%, rgba(74, 222, 128, .26) 55%, rgba(12, 24, 20, .55) 100%); }
+  .tile-red    { background: linear-gradient(145deg, rgba(248, 113, 113, .62) 0%, rgba(248, 113, 113, .28) 55%, rgba(12, 24, 20, .55) 100%); }
 }
 
 /* Telefonlarda bulanıklık daha hafif: eski cihazlarda kaydırma akıcı kalsın */

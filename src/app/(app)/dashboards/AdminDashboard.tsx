@@ -40,8 +40,8 @@ export default async function AdminDashboard() {
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat accent="blue" icon="users" label="Aktif öğrenci" value={students} href="/ogrenciler" />
         <Stat accent="purple" icon="layers" label="Aktif grup" value={groups} href="/gruplar" />
-        <Stat accent="gold" icon="wallet" label={`${periodLabel(period)} tahsilat`} value={tl(collected)} hint={`Beklenen ${tl(expected)}`} href="/aidatlar" />
-        <Stat accent="red" icon="alert" label="Geciken aidat" value={overdue.length} hint={tl(overdue.reduce((s, p) => s + p.amount - p.paidAmount, 0))} href="/aidatlar?durum=GECIKTI" tone={overdue.length ? "red" : undefined} />
+        <Stat accent="gold" icon="wallet" label={`${periodLabel(period)} tahsilat`} value={tl(collected)} hint={`Beklenen ${tl(expected)}`} progress={expected ? collected / expected : 0} href="/aidatlar" />
+        <Stat accent="red" icon="alert" label="Geciken aidat" value={overdue.length} hint={overdue.length ? tl(overdue.reduce((s, p) => s + p.amount - p.paidAmount, 0)) : "Her şey yolunda ✓"} href="/aidatlar?durum=GECIKTI" tone={overdue.length ? "red" : undefined} />
       </div>
 
       {waDues + waLessons > 0 && (

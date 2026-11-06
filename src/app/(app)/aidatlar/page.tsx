@@ -47,7 +47,7 @@ export default async function DuesPage({ searchParams }: { searchParams: Promise
       />
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat accent="blue" icon="wallet" label="Beklenen" value={tl(expected)} hint={`${all.length} kayıt`} />
-        <Stat accent="green" icon="trend" label="Tahsil edilen" value={tl(collected)} hint={expected ? `%${Math.round((collected / expected) * 100)}` : undefined} />
+        <Stat accent="green" icon="trend" label="Tahsil edilen" value={tl(collected)} progress={expected ? collected / expected : 0} hint={expected ? `%${Math.round((collected / expected) * 100)}` : undefined} />
         <Stat accent="gold" icon="clock" label="Kalan" value={tl(expected - collected)} />
         <Stat accent="red" icon="alert" label="Geciken" value={late.length} hint={tl(late.reduce((s, p) => s + p.amount - p.paidAmount, 0))} tone={late.length ? "red" : undefined} />
       </div>
