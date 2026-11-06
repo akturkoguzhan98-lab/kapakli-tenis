@@ -13,11 +13,15 @@ export default async function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-court-900 via-court-700 to-clay-700 px-4">
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center text-white">
-          <svg width="48" height="48" viewBox="0 0 32 32" className="mx-auto" aria-hidden>
-            <circle cx="16" cy="16" r="14" fill="#d4e157" />
-            <path d="M5 8c6 3 6 13 0 16M27 8c-6 3-6 13 0 16" stroke="#fff" strokeWidth="2" fill="none" />
-          </svg>
-          <h1 className="mt-3 text-2xl font-semibold">Kapaklı Tenis Akademi</h1>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo.png"
+            alt="Kapaklı Tenis Akademi logosu"
+            width={128}
+            height={128}
+            className="mx-auto h-28 w-28 rounded-full shadow-xl ring-4 ring-white/20 sm:h-32 sm:w-32"
+          />
+          <h1 className="mt-4 text-2xl font-semibold">Kapaklı Tenis Akademi</h1>
           <p className="text-sm text-court-100">Yönetim paneline giriş</p>
         </div>
         <div className="card p-6">

@@ -74,10 +74,8 @@ export function Nav({ items, user, roleLabel, logout }: {
 function Brand() {
   return (
     <Link href="/" className="flex items-center gap-2 text-white">
-      <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden>
-        <circle cx="16" cy="16" r="14" fill="#d4e157" />
-        <path d="M5 8c6 3 6 13 0 16M27 8c-6 3-6 13 0 16" stroke="#fff" strokeWidth="2" fill="none" />
-      </svg>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/logo.png" alt="" width={36} height={36} className="h-9 w-9 rounded-full" />
       <span className="leading-tight">
         <span className="block text-sm font-semibold">Kapaklı Tenis</span>
         <span className="block text-[11px] text-court-100">Akademi</span>

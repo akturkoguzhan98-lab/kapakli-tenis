@@ -12,6 +12,8 @@ export default async function SetupPage() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-court-900 via-court-700 to-clay-700 px-4">
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center text-white">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="Kapaklı Tenis Akademi logosu" width={112} height={112} className="mx-auto mb-4 h-28 w-28 rounded-full shadow-xl ring-4 ring-white/20" />
           <h1 className="text-2xl font-semibold">Hoş geldiniz 🎾</h1>
           <p className="mt-1 text-sm text-court-100">Kapaklı Tenis Akademi sistemi ilk kez açılıyor. Yönetici hesabınızı oluşturun.</p>
         </div>
