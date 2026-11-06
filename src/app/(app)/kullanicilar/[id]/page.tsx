@@ -27,15 +27,15 @@ export default async function UserPage({ params }: { params: Promise<{ id: strin
         </Card>
         {u.role === "PARENT" && (
           <Card title="Bağlı öğrenciler">
-            {u.children.length === 0 ? <p className="text-sm text-stone-500">Yok. Öğrenci kaydında bu veliyi seçin.</p> : (
+            {u.children.length === 0 ? <p className="text-sm text-white/65">Yok. Öğrenci kaydında bu veliyi seçin.</p> : (
               <ul className="space-y-1 text-sm">{u.children.map((c) => <li key={c.id}><Link className="link" href={`/ogrenciler/${c.id}`}>{fullName(c)}</Link></li>)}</ul>
             )}
           </Card>
         )}
         {u.role === "COACH" && (
           <Card title="Grupları">
-            {u.coachGroups.length === 0 ? <p className="text-sm text-stone-500">Atanmış grup yok.</p> : (
-              <ul className="space-y-1 text-sm">{u.coachGroups.map((g) => <li key={g.id}><Link className="link" href={`/gruplar/${g.id}`}>{g.name}</Link> <span className="text-xs text-stone-500">{DAY_LABEL[g.dayOfWeek]} {g.startTime}</span></li>)}</ul>
+            {u.coachGroups.length === 0 ? <p className="text-sm text-white/65">Atanmış grup yok.</p> : (
+              <ul className="space-y-1 text-sm">{u.coachGroups.map((g) => <li key={g.id}><Link className="link" href={`/gruplar/${g.id}`}>{g.name}</Link> <span className="text-xs text-white/65">{DAY_LABEL[g.dayOfWeek]} {g.startTime}</span></li>)}</ul>
             )}
           </Card>
         )}

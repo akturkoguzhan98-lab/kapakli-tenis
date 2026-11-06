@@ -49,7 +49,7 @@ export default async function TakeAttendance({ params, searchParams }: {
         }
       />
       {requested !== date && (
-        <p className="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
+        <p className="mb-4 rounded-lg bg-amber-400/15 px-3 py-2 text-sm text-amber-200">
           Bu grubun dersi {DAY_LABEL[g.dayOfWeek]} günleri; en yakın geçmiş ders ({dateLabel(date)}) gösteriliyor.
         </p>
       )}
@@ -58,13 +58,13 @@ export default async function TakeAttendance({ params, searchParams }: {
           <ActionForm action={saveAttendance}>
             <input type="hidden" name="groupId" value={g.id} />
             <input type="hidden" name="date" value={date} />
-            <ul className="divide-y divide-stone-100">
+            <ul className="divide-y divide-white/10">
               {g.members.map(({ student: s }) => {
                 const cur = prev.get(s.id) ?? "GELDI";
                 return (
                   <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
                     <span className="text-sm font-medium">{fullName(s)}</span>
-                    <div className="flex overflow-hidden rounded-lg border border-stone-300 text-sm">
+                    <div className="flex overflow-hidden rounded-lg border border-white/25 text-sm">
                       {(["GELDI", "GELMEDI", "IZINLI"] as const).map((st) => (
                         <label key={st} className="cursor-pointer">
                           <input type="radio" name={`s_${s.id}`} value={st} defaultChecked={cur === st} className="peer sr-only" />

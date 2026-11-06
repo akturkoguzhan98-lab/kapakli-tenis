@@ -2,87 +2,93 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { SidebarDecor } from "./TennisBackground";
+import { useEffect, useRef, useState } from "react";
+import { Icon, IconName } from "./icons";
 
-export type NavItem = { href: string; label: string };
+export type NavItem = { href: string; label: string; icon: IconName };
 
+/** Üstte cam görünümlü hap menü. Telefonda menü ikinci satırda yana kaydırılır. */
 export function Nav({ items, user, roleLabel, logout }: {
   items: NavItem[]; user: string; roleLabel: string; logout: () => Promise<void>;
 }) {
   const path = usePathname();
   const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const pillsRef = useRef<HTMLDivElement>(null);
   const isActive = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
+  const initials = user.split(" ").filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toLocaleUpperCase("tr");
 
-  const links = (
-    <nav className="flex flex-col gap-0.5">
-      {items.map((i) => (
-        <Link
-          key={i.href}
-          href={i.href}
-          onClick={() => setOpen(false)}
-          className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
-            isActive(i.href) ? "bg-white/15 text-white" : "text-court-100 hover:bg-white/10 hover:text-white"
-          }`}
-        >
-          {i.label}
+  // Açık sayfanın düğmesi her zaman görünür olsun (telefonda kaydırılmış menü)
+  useEffect(() => {
+    pillsRef.current?.querySelector<HTMLElement>("[data-active=true]")?.scrollIntoView({ block: "nearest", inline: "center" });
+    setOpen(false);
+  }, [path]);
+
+  // Hesap menüsünü dışarı tıklayınca kapat
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => { if (!menuRef.current?.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [open]);
+
+  return (
+    <header className="sticky top-0 z-30 px-3 pt-3 sm:px-5 print:hidden">
+      <div className="glass mx-auto flex max-w-[1400px] flex-wrap items-center gap-2 rounded-3xl bg-[#08140f]/60 px-3 py-2 lg:flex-nowrap lg:rounded-full">
+        <Link href="/" className="flex shrink-0 items-center gap-2.5 pr-2 text-white">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="" width={36} height={36} className="h-9 w-9 rounded-full" />
+          <span className="leading-tight">
+            <span className="block text-sm font-semibold">Kapaklı Tenis</span>
+            <span className="block text-[11px] text-white/70">Akademi</span>
+          </span>
         </Link>
-      ))}
-    </nav>
-  );
 
-  const footer = (
-    <div className="border-t border-white/10 pt-4 text-sm">
-      <div className="font-medium text-white">{user}</div>
-      <div className="text-xs text-court-100">{roleLabel}</div>
-      <div className="mt-3 flex gap-2">
-        <Link href="/profil" onClick={() => setOpen(false)} className="text-xs text-court-100 hover:text-white">Şifre değiştir</Link>
-        <span className="text-court-100/50">·</span>
-        <form action={logout}>
-          <button className="text-xs text-court-100 hover:text-white">Çıkış</button>
-        </form>
+        <nav
+          ref={pillsRef}
+          className="order-3 -mx-1 flex w-full gap-1 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none] lg:order-none lg:mx-auto lg:w-auto lg:pb-0 [&::-webkit-scrollbar]:hidden"
+        >
+          {items.map((i) => {
+            const active = isActive(i.href);
+            return (
+              <Link
+                key={i.href}
+                href={i.href}
+                data-active={active}
+                className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[13px] font-medium transition ${
+                  active
+                    ? "border-white/35 bg-white/20 text-white shadow-[inset_0_1px_0_rgba(255,255,255,.35)]"
+                    : "border-transparent text-white/80 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <Icon name={i.icon} size={15} />
+                {i.label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div ref={menuRef} className="relative ml-auto shrink-0 lg:ml-0">
+          <button
+            onClick={() => setOpen(!open)}
+            aria-expanded={open}
+            aria-label="Hesap menüsü"
+            className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-amber-300 to-orange-500 text-xs font-bold text-orange-950 ring-2 ring-white/30"
+          >
+            {initials}
+          </button>
+          {open && (
+            <div className="card absolute right-0 top-11 w-56 p-3 text-sm">
+              <div className="font-semibold text-white">{user}</div>
+              <div className="mb-3 text-xs text-white/65">{roleLabel}</div>
+              <Link href="/profil" className="block rounded-lg px-2 py-1.5 text-white/90 hover:bg-white/10">Şifre değiştir</Link>
+              <form action={logout}>
+                <button className="w-full rounded-lg px-2 py-1.5 text-left text-red-300 hover:bg-red-500/15">Çıkış yap</button>
+              </form>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
-  );
-
-  return (
-    <>
-      {/* Mobil üst çubuk */}
-      <header className="sticky top-0 z-30 flex print:hidden items-center justify-between bg-court-900 px-4 py-3 text-white lg:hidden">
-        <Brand />
-        <button onClick={() => setOpen(!open)} className="rounded-md px-2 py-1 text-sm ring-1 ring-white/20" aria-expanded={open}>
-          {open ? "Kapat" : "Menü"}
-        </button>
-      </header>
-      {open && (
-        <div className="fixed inset-x-0 top-[52px] bottom-0 z-20 flex flex-col justify-between overflow-y-auto bg-court-900 p-4 lg:hidden">
-          <SidebarDecor />
-          <div className="relative z-10">{links}</div>
-          <div className="relative z-10">{footer}</div>
-        </div>
-      )}
-      {/* Masaüstü yan menü */}
-      <aside className="fixed inset-y-0 left-0 z-20 hidden w-60 print:!hidden flex-col justify-between overflow-hidden bg-court-900 p-4 lg:flex">
-        <SidebarDecor />
-        <div className="relative z-10">
-          <div className="mb-6 px-2 pt-1"><Brand /></div>
-          {links}
-        </div>
-        <div className="relative z-10">{footer}</div>
-      </aside>
-    </>
-  );
-}
-
-function Brand() {
-  return (
-    <Link href="/" className="flex items-center gap-2 text-white">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/logo.png" alt="" width={36} height={36} className="h-9 w-9 rounded-full" />
-      <span className="leading-tight">
-        <span className="block text-sm font-semibold">Kapaklı Tenis</span>
-        <span className="block text-[11px] text-court-100">Akademi</span>
-      </span>
-    </Link>
+    </header>
   );
 }

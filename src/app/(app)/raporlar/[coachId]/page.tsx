@@ -33,10 +33,10 @@ export default async function CoachReportPage({ params, searchParams }: { params
         }
       />
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="Toplam yapılan" value={hoursLabel(r.totalMinutes)} hint={`${r.lessonsDone} ders`} />
-        <Stat label="Grup / özel" value={`${hoursLabel(r.groupMinutes)} / ${hoursLabel(r.privateMinutes)}`} />
-        <Stat label="Hakediş" value={tl(r.earnings)} hint={r.coach.hourlyRate ? `${tl(r.coach.hourlyRate)} / saat` : "Saatlik ücret tanımlı değil"} />
-        <Stat label="Yoklaması alınmamış" value={r.missingAttendance} tone={r.missingAttendance ? "red" : undefined} hint={r.upcoming ? `${r.upcoming} ders daha planlı` : undefined} />
+        <Stat accent="green" icon="clock" label="Toplam yapılan" value={hoursLabel(r.totalMinutes)} hint={`${r.lessonsDone} ders`} />
+        <Stat accent="purple" icon="layers" label="Grup / özel" value={`${hoursLabel(r.groupMinutes)} / ${hoursLabel(r.privateMinutes)}`} />
+        <Stat accent="gold" icon="wallet" label="Hakediş" value={tl(r.earnings)} hint={r.coach.hourlyRate ? `${tl(r.coach.hourlyRate)} / saat` : "Saatlik ücret tanımlı değil"} />
+        <Stat accent="red" icon="alert" label="Yoklaması alınmamış" value={r.missingAttendance} tone={r.missingAttendance ? "red" : undefined} hint={r.upcoming ? `${r.upcoming} ders daha planlı` : undefined} />
       </div>
       <Card title="Ders dökümü" padded={false}>
         {r.rows.length === 0 ? <Empty>Bu ay ders yok.</Empty> : (
@@ -45,7 +45,7 @@ export default async function CoachReportPage({ params, searchParams }: { params
               <thead><tr><th>Tarih</th><th>Saat</th><th>Ders</th><th>Tür</th><th className="text-right">Süre</th><th className="text-right">Gelen</th><th>Durum</th></tr></thead>
               <tbody>
                 {r.rows.map((x, i) => (
-                  <tr key={i} className={x.status === "PLANLI" ? "text-stone-400" : ""}>
+                  <tr key={i} className={x.status === "PLANLI" ? "text-white/45" : ""}>
                     <td className="whitespace-nowrap">{dateLabel(x.date)}</td>
                     <td className="font-mono text-xs">{x.start}–{x.end}</td>
                     <td>{x.title}</td>

@@ -1,7 +1,6 @@
 // Tenis temalı arka plan parçaları.
 // - TennisBackground: giriş/kurulum sayfaları (koyu yeşil, büyük hareketli toplar)
-// - AppBackground: panel içi sayfalar (açık zemin, çok silik çizgiler, soluk top — yazıları engellemez)
-// - SidebarDecor: sol menünün koyu zeminine silik kort çizgileri ve seken küçük top
+// - Ball, CourtLines: panel sahnesinde (CourtScene) de kullanılır
 // Animasyonlar globals.css içindeki "tb-" sınıflarında; "hareketi azalt" ayarında kapanır.
 
 // Kort ölçüleri (metre): yarı uzunluk, yarı çift genişlik, yarı tek genişlik, servis çizgisi
@@ -92,48 +91,6 @@ export function TennisBackground() {
       <div className="absolute left-[6vmin] top-[8vmin] h-[11vmin] w-[11vmin]">
         <div className="tb-bounce h-full w-full opacity-90 drop-shadow-[0_10px_18px_rgba(0,0,0,.45)]">
           <Ball id="tb-small" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/**
- * Panel içi sayfaların arka planı. Sabit (kaydırınca yerinde durur), içeriğin ARKASINDA kalır.
- * Çizgiler ve top çok soluk tutuldu; beyaz kartlar bunları zaten örter, yazılar her zaman okunur.
- */
-export function AppBackground() {
-  return (
-    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden print:hidden lg:left-60" aria-hidden>
-      {/* Hafif yeşil ışık: üstte çok açık kort yeşili, aşağı doğru normal zemin */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_-10%,#e3f1e7_0%,rgba(250,250,249,0)_55%)]" />
-      {/* Çok silik kort çizgileri: sadece geniş ekranda, kenarlara doğru kaybolarak
-          (kart aralarında bağlantı çizgisi gibi algılanmasın diye) */}
-      <div className="absolute inset-0 hidden opacity-[.045] [mask-image:radial-gradient(ellipse_70%_65%_at_55%_55%,black_35%,transparent_100%)] md:block">
-        <CourtLines color="#1c5032" width={0.06} posts={false} />
-      </div>
-      {/* Sağ alttan taşan soluk top */}
-      <div className="absolute -bottom-[16vmin] -right-[14vmin] h-[46vmin] w-[46vmin] opacity-[.22]">
-        <div className="tb-float h-full w-full">
-          <div className="tb-roll h-full w-full">
-            <Ball id="tb-app" />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/** Sol menünün altına silik dikey kort ve seken küçük top */
-export function SidebarDecor() {
-  return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-      <div className="absolute inset-x-0 bottom-0 h-[55%] opacity-[.08] [mask-image:linear-gradient(to_top,black_40%,transparent)]">
-        <CourtLines vertical posts={false} width={0.1} delay={0.3} />
-      </div>
-      <div className="absolute bottom-32 right-5 h-9 w-9">
-        <div className="tb-bounce h-full w-full drop-shadow-[0_6px_10px_rgba(0,0,0,.5)]">
-          <Ball id="tb-side" />
         </div>
       </div>
     </div>

@@ -38,14 +38,14 @@ export default async function AdminDashboard() {
     <>
       <PageHeader title="Genel bakış" subtitle={dateLabel(today)} />
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="Aktif öğrenci" value={students} href="/ogrenciler" />
-        <Stat label="Aktif grup" value={groups} href="/gruplar" />
-        <Stat label={`${periodLabel(period)} tahsilat`} value={tl(collected)} hint={`Beklenen ${tl(expected)}`} href="/aidatlar" />
-        <Stat label="Geciken aidat" value={overdue.length} hint={tl(overdue.reduce((s, p) => s + p.amount - p.paidAmount, 0))} href="/aidatlar?durum=GECIKTI" tone={overdue.length ? "red" : undefined} />
+        <Stat accent="blue" icon="users" label="Aktif öğrenci" value={students} href="/ogrenciler" />
+        <Stat accent="purple" icon="layers" label="Aktif grup" value={groups} href="/gruplar" />
+        <Stat accent="gold" icon="wallet" label={`${periodLabel(period)} tahsilat`} value={tl(collected)} hint={`Beklenen ${tl(expected)}`} href="/aidatlar" />
+        <Stat accent="red" icon="alert" label="Geciken aidat" value={overdue.length} hint={tl(overdue.reduce((s, p) => s + p.amount - p.paidAmount, 0))} href="/aidatlar?durum=GECIKTI" tone={overdue.length ? "red" : undefined} />
       </div>
 
       {waDues + waLessons > 0 && (
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-court-100 bg-court-50 px-4 py-3 text-sm text-court-800">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-lime-300/30 bg-lime-300/15 px-4 py-3 text-sm text-lime-100">
           <span>
             <b>Bekleyen WhatsApp hatırlatmaları:</b>{" "}
             {[waDues ? `${waDues} aidat` : "", waLessons ? `${waLessons} yarınki ders` : ""].filter(Boolean).join(" · ")}
@@ -65,14 +65,14 @@ export default async function AdminDashboard() {
         <div className="space-y-6 lg:col-span-2">
           <Card title={`Onay bekleyen talepler (${pending.length})`}>
             {pending.length === 0 ? <Empty>Bekleyen talep yok.</Empty> : (
-              <ul className="divide-y divide-stone-100">
+              <ul className="divide-y divide-white/10">
                 {pending.map((r) => (
                   <li key={r.id} className="py-2.5">
                     <div className="text-sm font-medium">{RES_TYPE_LABEL[r.type]} · {r.court.name}</div>
-                    <div className="text-xs text-stone-500">
+                    <div className="text-xs text-white/65">
                       {dateLabel(r.date)} {r.startTime}–{r.endTime} · {r.user.name}{r.student ? ` (${fullName(r.student)})` : ""}
                     </div>
-                    {r.note && <div className="mt-0.5 text-xs italic text-stone-500">“{r.note}”</div>}
+                    {r.note && <div className="mt-0.5 text-xs italic text-white/65">“{r.note}”</div>}
                     <div className="mt-2 flex gap-2">
                       <form action={approveReservation}><input type="hidden" name="id" value={r.id} /><button className="btn-primary btn-sm">Onayla</button></form>
                       <form action={cancelReservation}><input type="hidden" name="id" value={r.id} /><ConfirmButton message="Talep reddedilsin mi?">Reddet</ConfirmButton></form>
@@ -85,12 +85,12 @@ export default async function AdminDashboard() {
 
           <Card title="Geciken aidatlar" actions={<Link href="/aidatlar?durum=GECIKTI" className="link text-xs">Tümü</Link>}>
             {overdue.length === 0 ? <Empty>Geciken ödeme yok. 🎾</Empty> : (
-              <ul className="divide-y divide-stone-100">
+              <ul className="divide-y divide-white/10">
                 {overdue.slice(0, 8).map((p) => (
                   <li key={p.id} className="flex items-center justify-between py-2 text-sm">
                     <Link href={`/ogrenciler/${p.studentId}`} className="link">{fullName(p.student)}</Link>
                     <span className="flex items-center gap-2">
-                      <span className="text-xs text-stone-500">{periodLabel(p.period)}</span>
+                      <span className="text-xs text-white/65">{periodLabel(p.period)}</span>
                       <Badge tone="red">{tl(p.amount - p.paidAmount)}</Badge>
                     </span>
                   </li>

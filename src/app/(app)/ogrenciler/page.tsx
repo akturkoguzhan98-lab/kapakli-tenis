@@ -40,15 +40,15 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
               <thead><tr><th>Öğrenci</th><th>Yaş</th><th>Seviye</th><th>Gruplar</th><th>Veli</th><th className="text-right">Aidat</th></tr></thead>
               <tbody>
                 {students.map((s) => (
-                  <tr key={s.id} className="hover:bg-stone-50">
+                  <tr key={s.id} className="hover:bg-white/5">
                     <td>
                       <Link href={`/ogrenciler/${s.id}`} className="link">{fullName(s)}</Link>
                       {!s.active && <span className="ml-2"><Badge>Pasif</Badge></span>}
                     </td>
                     <td>{ageFrom(s.birthDate) ?? "—"}</td>
                     <td>{LEVEL_LABEL[s.level]}</td>
-                    <td className="text-xs text-stone-600">{s.groups.map((g) => g.group.name).join(", ") || "—"}</td>
-                    <td className="text-xs">{s.parent ? <>{s.parent.name}<div className="text-stone-500">{s.parent.phone}</div></> : "—"}</td>
+                    <td className="text-xs text-white/75">{s.groups.map((g) => g.group.name).join(", ") || "—"}</td>
+                    <td className="text-xs">{s.parent ? <>{s.parent.name}<div className="text-white/65">{s.parent.phone}</div></> : "—"}</td>
                     <td className="text-right">{s.monthlyFee ? tl(s.monthlyFee) : "—"}</td>
                   </tr>
                 ))}

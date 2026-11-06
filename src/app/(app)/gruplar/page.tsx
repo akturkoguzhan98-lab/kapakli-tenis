@@ -22,7 +22,7 @@ export default async function GroupsPage() {
                 {groups.map((g) => {
                   const full = g._count.members >= g.capacity;
                   return (
-                    <tr key={g.id} className={g.active ? "hover:bg-stone-50" : "opacity-60"}>
+                    <tr key={g.id} className={g.active ? "hover:bg-white/5" : "opacity-60"}>
                       <td><Link href={`/gruplar/${g.id}`} className="link">{g.name}</Link>{!g.active && <span className="ml-2"><Badge>Pasif</Badge></span>}</td>
                       <td>{DAY_LABEL[g.dayOfWeek]} {g.startTime}–{g.endTime}</td>
                       <td>{LEVEL_LABEL[g.level]}</td>

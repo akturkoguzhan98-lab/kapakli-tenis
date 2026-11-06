@@ -46,17 +46,17 @@ export default async function DuesPage({ searchParams }: { searchParams: Promise
         }
       />
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="Beklenen" value={tl(expected)} hint={`${all.length} kayıt`} />
-        <Stat label="Tahsil edilen" value={tl(collected)} hint={expected ? `%${Math.round((collected / expected) * 100)}` : undefined} />
-        <Stat label="Kalan" value={tl(expected - collected)} />
-        <Stat label="Geciken" value={late.length} hint={tl(late.reduce((s, p) => s + p.amount - p.paidAmount, 0))} tone={late.length ? "red" : undefined} />
+        <Stat accent="blue" icon="wallet" label="Beklenen" value={tl(expected)} hint={`${all.length} kayıt`} />
+        <Stat accent="green" icon="trend" label="Tahsil edilen" value={tl(collected)} hint={expected ? `%${Math.round((collected / expected) * 100)}` : undefined} />
+        <Stat accent="gold" icon="clock" label="Kalan" value={tl(expected - collected)} />
+        <Stat accent="red" icon="alert" label="Geciken" value={late.length} hint={tl(late.reduce((s, p) => s + p.amount - p.paidAmount, 0))} tone={late.length ? "red" : undefined} />
       </div>
 
       {!overdueMode && (
         <Card className="mb-6">
           <ActionForm action={generateDues} className="flex flex-wrap items-end gap-3">
             <input type="hidden" name="period" value={period} />
-            <div className="flex-1 text-sm text-stone-600">
+            <div className="flex-1 text-sm text-white/75">
               <b>{periodLabel(period)}</b> dönemi için aidat ücreti tanımlı tüm aktif öğrencilere borç kaydı oluşturur. Mevcut kayıtlara dokunmaz.
             </div>
             <label className="text-sm">
@@ -86,14 +86,14 @@ export default async function DuesPage({ searchParams }: { searchParams: Promise
                 {rows.map((p) => {
                   const remaining = p.amount - p.paidAmount;
                   return (
-                    <tr key={p.id} className="hover:bg-stone-50">
+                    <tr key={p.id} className="hover:bg-white/5">
                       <td>
                         <Link href={`/ogrenciler/${p.studentId}`} className="link">{fullName(p.student)}</Link>
-                        {p.student.parent && <div className="text-xs text-stone-500">{p.student.parent.name}{p.student.parent.phone ? ` · ${p.student.parent.phone}` : ""}</div>}
+                        {p.student.parent && <div className="text-xs text-white/65">{p.student.parent.name}{p.student.parent.phone ? ` · ${p.student.parent.phone}` : ""}</div>}
                         {remaining > 0 && (() => {
                           const url = waLink(p.student.parent?.phone ?? p.student.phone,
                             `Sayın ${p.student.parent?.name ?? fullName(p.student)}, ${fullName(p.student)} için ${periodLabel(p.period)} aidatından ${tl(remaining)} ödeme beklenmektedir. Kapaklı Tenis Akademi`);
-                          return url ? <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-court-700 hover:underline">WhatsApp ile hatırlat ↗</a> : null;
+                          return url ? <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-lime-200 hover:underline">WhatsApp ile hatırlat ↗</a> : null;
                         })()}
                       </td>
                       {overdueMode && <td>{periodLabel(p.period)}</td>}
@@ -101,7 +101,7 @@ export default async function DuesPage({ searchParams }: { searchParams: Promise
                       <td>{tl(p.amount)}</td>
                       <td className="text-xs">
                         {tl(p.paidAmount)}
-                        {p.paidAt && <div className="text-stone-500">{dateLabel(p.paidAt, false)} · {PAY_METHOD_LABEL[p.method ?? ""]}</div>}
+                        {p.paidAt && <div className="text-white/65">{dateLabel(p.paidAt, false)} · {PAY_METHOD_LABEL[p.method ?? ""]}</div>}
                       </td>
                       <td><Badge tone={PAY_TONE[p.status]}>{PAY_STATUS_LABEL[p.status]}</Badge></td>
                       <td>
@@ -123,7 +123,7 @@ export default async function DuesPage({ searchParams }: { searchParams: Promise
                         {p.paidAmount === 0 && (
                           <form action={deletePayment} className="mt-1">
                             <input type="hidden" name="id" value={p.id} />
-                            <ConfirmButton message="Bu aidat kaydı silinsin mi?" className="text-xs text-red-600 hover:underline">Kaydı sil</ConfirmButton>
+                            <ConfirmButton message="Bu aidat kaydı silinsin mi?" className="text-xs text-red-300 hover:underline">Kaydı sil</ConfirmButton>
                           </form>
                         )}
                       </td>

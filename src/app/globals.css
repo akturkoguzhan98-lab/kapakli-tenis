@@ -2,32 +2,69 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Cam (glassmorphism) koyu tema. Arka plan: src/components/CourtScene.tsx
+ * Yazdırırken her şey beyaz zemin + siyah yazıya döner (en alttaki @media print).
+ */
 @layer base {
-  body { @apply bg-stone-50 text-stone-900 antialiased; }
+  :root { color-scheme: dark; }
+  body { @apply bg-[#06110d] text-white antialiased; }
   h1, h2, h3 { @apply tracking-tight; }
+  h1 { text-shadow: 0 2px 16px rgba(0, 0, 0, .45); }
+  ::selection { @apply bg-lime-300/40; }
 }
 
 @layer components {
-  .input {
-    @apply block w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm shadow-sm
-      focus:border-court-500 focus:outline-none focus:ring-2 focus:ring-court-500/20 disabled:bg-stone-100;
+  .glass {
+    background: linear-gradient(135deg, rgba(255, 255, 255, .14), rgba(255, 255, 255, .05));
+    border: 1px solid rgba(255, 255, 255, .2);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .22);
+    -webkit-backdrop-filter: blur(22px) saturate(150%);
+    backdrop-filter: blur(22px) saturate(150%);
   }
-  .label { @apply mb-1 block text-xs font-medium text-stone-600; }
+  /* İçerik kartları: daha koyu cam — tablolar ve formlar her zaman net okunsun */
+  .card {
+    @apply rounded-2xl;
+    background: linear-gradient(135deg, rgba(14, 30, 25, .72), rgba(10, 22, 18, .58));
+    border: 1px solid rgba(255, 255, 255, .14);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, .38), inset 0 1px 0 rgba(255, 255, 255, .12);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    backdrop-filter: blur(20px) saturate(140%);
+  }
+  .input {
+    @apply block w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm text-white shadow-sm
+      placeholder:text-white/40 focus:border-lime-300 focus:outline-none focus:ring-2 focus:ring-lime-300/30
+      disabled:opacity-60;
+  }
+  .input option, .input optgroup { background: #10241d; color: #fff; }
+  .label { @apply mb-1 block text-xs font-medium text-white/70; }
   .btn {
-    @apply inline-flex items-center justify-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium
+    @apply inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold
       transition disabled:cursor-not-allowed disabled:opacity-60;
   }
-  .btn-primary { @apply btn bg-court-600 text-white hover:bg-court-700; }
-  .btn-secondary { @apply btn border border-stone-300 bg-white text-stone-700 hover:bg-stone-100; }
-  .btn-danger { @apply btn border border-red-200 bg-white text-red-700 hover:bg-red-50; }
-  .btn-sm { @apply px-2.5 py-1 text-xs; }
-  .card { @apply rounded-xl border border-stone-200 bg-white shadow-sm; }
+  .btn-primary { @apply btn bg-lime-200 text-lime-950 shadow-[0_6px_20px_rgba(190,242,100,.25)] hover:bg-lime-100; }
+  .btn-secondary { @apply btn border border-white/25 bg-white/10 text-white hover:bg-white/20; }
+  .btn-danger { @apply btn border border-red-400/40 bg-red-500/10 text-red-200 hover:bg-red-500/25; }
+  .btn-sm { @apply px-3 py-1 text-xs; }
   .table { @apply w-full text-sm; }
-  .table th { @apply border-b border-stone-200 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-stone-500; }
-  .table td { @apply border-b border-stone-100 px-3 py-2.5 align-middle; }
+  .table th { @apply border-b border-white/10 px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-white/60; }
+  .table td { @apply border-b border-white/[.06] px-3 py-2.5 align-middle; }
   .table tr:last-child td { @apply border-b-0; }
-  .link { @apply font-medium text-court-700 hover:underline; }
+  .link { @apply font-medium text-lime-200 hover:text-lime-100 hover:underline; }
+
+  /* Renkli istatistik kutularının başlık şeritleri */
+  .accent-blue   { background: linear-gradient(140deg, rgba(96, 165, 250, .85), rgba(59, 90, 200, .5)); }
+  .accent-purple { background: linear-gradient(140deg, rgba(167, 139, 250, .9), rgba(109, 40, 217, .5)); }
+  .accent-gold   { background: linear-gradient(140deg, rgba(250, 204, 21, .85), rgba(202, 138, 4, .5)); }
+  .accent-green  { background: linear-gradient(140deg, rgba(74, 222, 128, .85), rgba(21, 128, 61, .5)); }
+  .accent-red    { background: linear-gradient(140deg, rgba(248, 113, 113, .9), rgba(185, 28, 28, .5)); }
 }
+
+/* Telefonlarda bulanıklık daha hafif: eski cihazlarda kaydırma akıcı kalsın */
+@media (max-width: 640px) {
+  .card, .glass { -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+}
+
 
 /* ---- Giriş sayfası tenis arka planı animasyonları ---- */
 @keyframes tb-roll-in {
@@ -63,4 +100,20 @@
 @media (prefers-reduced-motion: reduce) {
   .tb-roll, .tb-float, .tb-bounce, .tb-fade, .tb-rise, .tb-rise-2 { animation: none; }
   .tb-draw { animation: none; stroke-dashoffset: 0; }
+}
+
+/* Yazdırma: beyaz zemin, siyah yazı, efektler kapalı (karne, raporlar) */
+@media print {
+  @page { margin: 14mm; }
+  *:not(.print-keep) {
+    color: #111 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+  .card { border-color: #ddd !important; }
+  html:root, html:root body { background: #fff !important; }
+  .print-keep { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }

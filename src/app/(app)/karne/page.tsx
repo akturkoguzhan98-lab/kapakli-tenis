@@ -37,11 +37,11 @@ export default async function KarneIndex() {
                   const e = s.evaluations[0];
                   const avg = e ? average(parseScores(e.scores)) : null;
                   return (
-                    <tr key={s.id} className="hover:bg-stone-50">
+                    <tr key={s.id} className="hover:bg-white/5">
                       <td><Link href={`/karne/${s.id}`} className="link">{fullName(s)}</Link></td>
                       <td>{LEVEL_LABEL[s.level]}</td>
-                      <td className="text-xs text-stone-600">{s.groups.map((g) => g.group.name).join(", ") || "—"}</td>
-                      <td className="text-xs">{e ? <>{e.term}<div className="text-stone-500">{dateLabel(e.date, false)}{e.coach ? ` · ${e.coach.name}` : ""}</div></> : <Badge tone="amber">Yok</Badge>}</td>
+                      <td className="text-xs text-white/75">{s.groups.map((g) => g.group.name).join(", ") || "—"}</td>
+                      <td className="text-xs">{e ? <>{e.term}<div className="text-white/65">{dateLabel(e.date, false)}{e.coach ? ` · ${e.coach.name}` : ""}</div></> : <Badge tone="amber">Yok</Badge>}</td>
                       <td className="text-right tabular-nums">{avg ? avg.toFixed(1).replace(".", ",") : "—"}</td>
                       <td className="text-right"><Link href={`/karne/${s.id}/yeni`} className="btn-secondary btn-sm">+ Karne</Link></td>
                     </tr>

@@ -43,24 +43,24 @@ export default async function ProgramPage({ searchParams }: { searchParams: Prom
       />
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-7">
         {days.map((d, i) => (
-          <div key={d} className={`card flex flex-col ${d === today ? "ring-2 ring-court-500" : ""}`}>
-            <div className="border-b border-stone-100 px-3 py-2">
+          <div key={d} className={`card flex flex-col ${d === today ? "ring-2 ring-lime-300/80" : ""}`}>
+            <div className="border-b border-white/10 px-3 py-2">
               <div className="text-sm font-semibold">{DAY_LABEL[i + 1]}</div>
-              <div className="text-xs text-stone-500">{dateLabel(d, false)}</div>
+              <div className="text-xs text-white/65">{dateLabel(d, false)}</div>
             </div>
             <div className="flex-1 space-y-2 p-2">
-              {schedules[i].length === 0 && <div className="py-3 text-center text-xs text-stone-400">—</div>}
+              {schedules[i].length === 0 && <div className="py-3 text-center text-xs text-white/45">—</div>}
               {schedules[i].map((it) => {
                 const color = it.kind === "GROUP"
-                  ? "border-court-500 bg-court-50"
+                  ? "border-lime-300 bg-lime-300/15"
                   : it.reservation?.status === "BEKLEMEDE"
-                    ? "border-amber-500 bg-amber-50"
-                    : it.reservation?.type === "OZEL_DERS" ? "border-clay-500 bg-clay-50" : "border-sky-500 bg-sky-50";
+                    ? "border-amber-500 bg-amber-400/15"
+                    : it.reservation?.type === "OZEL_DERS" ? "border-clay-500 bg-orange-400/15" : "border-sky-500 bg-sky-400/15";
                 const body = (
                   <div className={`rounded-md border-l-4 px-2 py-1.5 text-xs ${color}`}>
                     <div className="font-mono font-semibold">{it.start}–{it.end}</div>
-                    <div className="font-medium text-stone-800">{it.title}</div>
-                    <div className="text-stone-500">{[it.court, it.coach].filter(Boolean).join(" · ")}</div>
+                    <div className="font-medium text-white">{it.title}</div>
+                    <div className="text-white/65">{[it.court, it.coach].filter(Boolean).join(" · ")}</div>
                   </div>
                 );
                 return user.role !== "PARENT" && it.groupId ? (
@@ -71,7 +71,7 @@ export default async function ProgramPage({ searchParams }: { searchParams: Prom
           </div>
         ))}
       </div>
-      <div className="mt-4 flex flex-wrap gap-4 text-xs text-stone-600">
+      <div className="mt-4 flex flex-wrap gap-4 text-xs text-white/75">
         <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-court-500" /> Grup dersi</span>
         <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-clay-500" /> Özel ders</span>
         <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-sky-500" /> Kort kiralama</span>

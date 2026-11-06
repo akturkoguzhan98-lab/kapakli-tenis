@@ -46,10 +46,10 @@ export default async function ParentDashboard({ user }: { user: CurrentUser }) {
           const age = ageFrom(c.birthDate);
           return (
             <section key={c.id} className="card overflow-hidden">
-              <div className="flex flex-wrap items-center justify-between gap-2 bg-court-50 px-4 py-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 bg-lime-300/15 px-4 py-3">
                 <div>
                   <h2 className="text-lg font-semibold">{fullName(c)}</h2>
-                  <p className="text-xs text-stone-600">{age !== null ? `${age} yaş · ` : ""}{LEVEL_LABEL[c.level]} seviye</p>
+                  <p className="text-xs text-white/75">{age !== null ? `${age} yaş · ` : ""}{LEVEL_LABEL[c.level]} seviye</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   {total > 0 && <Badge tone="green">Son {total} derste devam: %{Math.round((present / total) * 100)}</Badge>}
@@ -58,21 +58,21 @@ export default async function ParentDashboard({ user }: { user: CurrentUser }) {
               </div>
               <div className="grid gap-6 p-4 md:grid-cols-3">
                 <div>
-                  <h3 className="mb-2 text-xs font-semibold uppercase text-stone-500">Haftalık dersler</h3>
-                  {c.groups.length === 0 ? <p className="text-sm text-stone-500">Henüz bir gruba kayıtlı değil.</p> : (
+                  <h3 className="mb-2 text-xs font-semibold uppercase text-white/65">Haftalık dersler</h3>
+                  {c.groups.length === 0 ? <p className="text-sm text-white/65">Henüz bir gruba kayıtlı değil.</p> : (
                     <ul className="space-y-2 text-sm">
                       {c.groups.map(({ group: g }) => (
                         <li key={g.id}>
                           <div className="font-medium">{DAY_LABEL[g.dayOfWeek]} {g.startTime}–{g.endTime}</div>
-                          <div className="text-xs text-stone-500">{g.name} · {g.court?.name ?? "Kort belirlenecek"} · {g.coach?.name ?? "Antrenör belirlenecek"}</div>
+                          <div className="text-xs text-white/65">{g.name} · {g.court?.name ?? "Kort belirlenecek"} · {g.coach?.name ?? "Antrenör belirlenecek"}</div>
                         </li>
                       ))}
                     </ul>
                   )}
                 </div>
                 <div>
-                  <h3 className="mb-2 text-xs font-semibold uppercase text-stone-500">Son yoklamalar</h3>
-                  {total === 0 ? <p className="text-sm text-stone-500">Kayıt yok.</p> : (
+                  <h3 className="mb-2 text-xs font-semibold uppercase text-white/65">Son yoklamalar</h3>
+                  {total === 0 ? <p className="text-sm text-white/65">Kayıt yok.</p> : (
                     <ul className="space-y-1 text-sm">
                       {c.attendances.map((a) => (
                         <li key={a.lessonId} className="flex justify-between">
@@ -84,14 +84,14 @@ export default async function ParentDashboard({ user }: { user: CurrentUser }) {
                   )}
                 </div>
                 <div>
-                  <h3 className="mb-2 text-xs font-semibold uppercase text-stone-500">Aidatlar</h3>
-                  {c.payments.length === 0 ? <p className="text-sm text-stone-500">Kayıt yok.</p> : (
+                  <h3 className="mb-2 text-xs font-semibold uppercase text-white/65">Aidatlar</h3>
+                  {c.payments.length === 0 ? <p className="text-sm text-white/65">Kayıt yok.</p> : (
                     <ul className="space-y-1 text-sm">
                       {c.payments.map((p) => {
                         const st = paymentStatus(p);
                         return (
                           <li key={p.id} className="flex items-center justify-between gap-2">
-                            <span>{periodLabel(p.period)} <span className="text-xs text-stone-500">{tl(p.amount)}</span></span>
+                            <span>{periodLabel(p.period)} <span className="text-xs text-white/65">{tl(p.amount)}</span></span>
                             <Badge tone={PAY_TONE[st]}>{PAY_STATUS_LABEL[st]}</Badge>
                           </li>
                         );
@@ -106,12 +106,12 @@ export default async function ParentDashboard({ user }: { user: CurrentUser }) {
 
         <Card title="Yaklaşan rezervasyonlar">
           {reservations.length === 0 ? <Empty>Yaklaşan rezervasyon yok.</Empty> : (
-            <ul className="divide-y divide-stone-100">
+            <ul className="divide-y divide-white/10">
               {reservations.map((r) => (
                 <li key={r.id} className="flex flex-wrap items-center gap-3 py-2.5 text-sm">
                   <div className="flex-1">
                     <div className="font-medium">{dateLabel(r.date)} · {r.startTime}–{r.endTime}</div>
-                    <div className="text-xs text-stone-500">
+                    <div className="text-xs text-white/65">
                       {RES_TYPE_LABEL[r.type]} · {r.court.name}{r.student ? ` · ${fullName(r.student)}` : ""}{r.coach ? ` · ${r.coach.name}` : ""}
                     </div>
                   </div>

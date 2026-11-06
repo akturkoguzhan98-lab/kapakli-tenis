@@ -40,10 +40,10 @@ export default async function CourtsPage({ searchParams }: { searchParams: Promi
   function cell(courtId: string, h: string) {
     const s = `${h}:00`, e = `${String(Number(h) + 1).padStart(2, "0")}:00`;
     const g = groups.find((g) => g.courtId === courtId && overlaps(g.startTime, g.endTime, s, e));
-    if (g) return <div className="h-full rounded bg-court-100 px-1.5 py-1 text-[11px] text-court-700">{user.role === "PARENT" ? "Grup dersi" : g.name}</div>;
+    if (g) return <div className="h-full rounded bg-emerald-400/20 px-1.5 py-1 text-[11px] text-lime-200">{user.role === "PARENT" ? "Grup dersi" : g.name}</div>;
     const r = reservations.find((r) => r.courtId === courtId && overlaps(r.startTime, r.endTime, s, e));
     if (r) {
-      const tone = r.status === "BEKLEMEDE" ? "bg-amber-100 text-amber-800" : r.type === "OZEL_DERS" ? "bg-clay-100 text-clay-700" : "bg-sky-100 text-sky-800";
+      const tone = r.status === "BEKLEMEDE" ? "bg-amber-400/20 text-amber-200" : r.type === "OZEL_DERS" ? "bg-orange-400/20 text-orange-200" : "bg-sky-400/20 text-sky-100";
       return (
         <div className={`h-full rounded px-1.5 py-1 text-[11px] ${tone}`}>
           {canSeeDetails(r) ? (r.type === "OZEL_DERS" ? `Özel · ${r.coach?.name ?? ""}` : r.user.name) : "Dolu"}
@@ -51,7 +51,7 @@ export default async function CourtsPage({ searchParams }: { searchParams: Promi
         </div>
       );
     }
-    return <div className="h-full rounded border border-dashed border-stone-200 px-1.5 py-1 text-[11px] text-stone-400">Boş</div>;
+    return <div className="h-full rounded border border-dashed border-white/15 px-1.5 py-1 text-[11px] text-white/45">Boş</div>;
   }
 
   const visibleRes = user.role === "PARENT" ? reservations.filter((r) => r.userId === user.id) : reservations;
@@ -79,8 +79,8 @@ export default async function CourtsPage({ searchParams }: { searchParams: Promi
                   <tr>
                     <th className="w-14" style={{ width: 56 }} />
                     {courts.map((c) => (
-                      <th key={c.id} className="text-left text-xs font-semibold text-stone-600">
-                        {c.name}<div className="font-normal text-stone-400">{SURFACE_LABEL[c.surface]}{c.indoor ? " · Kapalı" : ""}</div>
+                      <th key={c.id} className="text-left text-xs font-semibold text-white/75">
+                        {c.name}<div className="font-normal text-white/45">{SURFACE_LABEL[c.surface]}{c.indoor ? " · Kapalı" : ""}</div>
                       </th>
                     ))}
                   </tr>
@@ -88,7 +88,7 @@ export default async function CourtsPage({ searchParams }: { searchParams: Promi
                 <tbody>
                   {HOURS.map((h) => (
                     <tr key={h}>
-                      <td className="pr-1 text-right align-top font-mono text-xs text-stone-500">{h}:00</td>
+                      <td className="pr-1 text-right align-top font-mono text-xs text-white/65">{h}:00</td>
                       {courts.map((c) => <td key={c.id} className="h-10 align-top">{cell(c.id, h)}</td>)}
                     </tr>
                   ))}
@@ -137,13 +137,13 @@ export default async function CourtsPage({ searchParams }: { searchParams: Promi
               )}
               <Field label="Not"><input name="note" className="input" placeholder={user.role === "PARENT" ? "ör. 2 kişi oynayacağız" : ""} /></Field>
               <SubmitButton>{user.role === "PARENT" ? "Talep gönder" : "Rezervasyon yap"}</SubmitButton>
-              {user.role === "PARENT" && <p className="text-xs text-stone-500">Talepler akademi onayından sonra kesinleşir.</p>}
+              {user.role === "PARENT" && <p className="text-xs text-white/65">Talepler akademi onayından sonra kesinleşir.</p>}
             </ActionForm>
           </Card>
 
           <Card title={user.role === "PARENT" ? "Bu günkü rezervasyonlarım" : "Günün rezervasyonları"}>
             {visibleRes.length === 0 ? <Empty>Rezervasyon yok.</Empty> : (
-              <ul className="divide-y divide-stone-100">
+              <ul className="divide-y divide-white/10">
                 {visibleRes.map((r) => {
                   const canCancel = isAdmin || r.userId === user.id || r.coachId === user.id;
                   return (
@@ -152,10 +152,10 @@ export default async function CourtsPage({ searchParams }: { searchParams: Promi
                         <span className="font-medium">{r.startTime}–{r.endTime} · {r.court.name}</span>
                         <Badge tone={r.status === "ONAYLI" ? "green" : "amber"}>{RES_STATUS_LABEL[r.status]}</Badge>
                       </div>
-                      <div className="text-xs text-stone-500">
+                      <div className="text-xs text-white/65">
                         {RES_TYPE_LABEL[r.type]} · {r.user.name}{r.coach ? ` · Antrenör: ${r.coach.name}` : ""}{r.student ? ` · ${fullName(r.student)}` : ""}
                       </div>
-                      {r.note && <div className="text-xs italic text-stone-500">“{r.note}”</div>}
+                      {r.note && <div className="text-xs italic text-white/65">“{r.note}”</div>}
                       {(canCancel || (isAdmin && r.status === "BEKLEMEDE")) && (
                         <div className="mt-1.5 flex gap-2">
                           {isAdmin && r.status === "BEKLEMEDE" && (
@@ -175,15 +175,15 @@ export default async function CourtsPage({ searchParams }: { searchParams: Promi
 
           {isAdmin && (
             <Card title="Kortlar">
-              <ul className="mb-4 divide-y divide-stone-100 text-sm">
+              <ul className="mb-4 divide-y divide-white/10 text-sm">
                 {allCourts.map((c) => (
                   <li key={c.id} className="flex items-center justify-between py-2">
-                    <span className={c.active ? "" : "text-stone-400 line-through"}>{c.name} <span className="text-xs text-stone-500">· {SURFACE_LABEL[c.surface]}{c.indoor ? " · Kapalı" : ""}</span></span>
+                    <span className={c.active ? "" : "text-white/45 line-through"}>{c.name} <span className="text-xs text-white/65">· {SURFACE_LABEL[c.surface]}{c.indoor ? " · Kapalı" : ""}</span></span>
                     <form action={toggleCourt}><input type="hidden" name="id" value={c.id} /><button className="btn-secondary btn-sm">{c.active ? "Kapat" : "Aç"}</button></form>
                   </li>
                 ))}
               </ul>
-              <ActionForm action={createCourt} className="space-y-2 border-t border-stone-100 pt-3" resetOnSuccess>
+              <ActionForm action={createCourt} className="space-y-2 border-t border-white/10 pt-3" resetOnSuccess>
                 <div className="flex gap-2">
                   <input name="name" placeholder="Kort adı" required className="input" />
                   <select name="surface" className="input w-auto"><option value="TOPRAK">Toprak</option><option value="SERT">Sert</option><option value="CIM">Çim</option></select>

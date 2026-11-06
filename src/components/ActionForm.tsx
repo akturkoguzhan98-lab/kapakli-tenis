@@ -23,9 +23,9 @@ export function ActionForm({ action, children, className, resetOnSuccess }: Prop
     <form ref={ref} action={formAction} className={className}>
       {children}
       {state?.error && (
-        <p role="alert" className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{state.error}</p>
+        <p role="alert" className="mt-3 rounded-lg bg-red-500/15 px-3 py-2 text-sm text-red-300">{state.error}</p>
       )}
-      {state?.ok && <p className="mt-3 rounded-lg bg-court-50 px-3 py-2 text-sm text-court-700">{state.ok}</p>}
+      {state?.ok && <p className="mt-3 rounded-lg bg-lime-300/15 px-3 py-2 text-sm text-lime-200">{state.ok}</p>}
     </form>
   );
 }

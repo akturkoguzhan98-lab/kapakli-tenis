@@ -24,14 +24,14 @@ export function StudentFields({ s = {}, parents, showActive }: { s?: S; parents:
           <option value="">— Veli seçilmedi —</option>
           {parents.map((p) => <option key={p.id} value={p.id}>{p.name}{p.phone ? ` · ${p.phone}` : ""}</option>)}
         </select>
-        <span className="mt-1 block text-xs text-stone-500">Listede yoksa önce Kullanıcılar sayfasından veli hesabı oluşturun.</span>
+        <span className="mt-1 block text-xs text-white/65">Listede yoksa önce Kullanıcılar sayfasından veli hesabı oluşturun.</span>
       </Field>
       <Field label="Notlar (sağlık, hedefler vb.)" className="sm:col-span-2">
         <textarea name="notes" rows={3} defaultValue={s.notes ?? ""} className="input" />
       </Field>
       {showActive && (
         <label className="flex items-center gap-2 text-sm sm:col-span-2">
-          <input type="checkbox" name="active" defaultChecked={s.active} className="h-4 w-4 rounded border-stone-300" /> Aktif öğrenci
+          <input type="checkbox" name="active" defaultChecked={s.active} className="h-4 w-4 rounded border-white/25" /> Aktif öğrenci
         </label>
       )}
     </div>

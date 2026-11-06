@@ -36,7 +36,7 @@ export function GroupFields({ g = {}, coaches, courts, showActive }: {
       <Field label="Kontenjan"><input name="capacity" type="number" min={1} max={30} defaultValue={g.capacity ?? 6} className="input" /></Field>
       {showActive && (
         <label className="flex items-center gap-2 self-end pb-2 text-sm">
-          <input type="checkbox" name="active" defaultChecked={g.active} className="h-4 w-4 rounded border-stone-300" /> Aktif grup
+          <input type="checkbox" name="active" defaultChecked={g.active} className="h-4 w-4 rounded border-white/25" /> Aktif grup
         </label>
       )}
     </div>

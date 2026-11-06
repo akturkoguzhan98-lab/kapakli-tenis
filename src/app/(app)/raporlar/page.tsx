@@ -31,10 +31,10 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
         }
       />
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="Toplam ders saati" value={hoursLabel(total)} />
-        <Stat label="Yapılan ders" value={reports.reduce((s, r) => s + r.lessonsDone, 0)} />
-        <Stat label="Toplam hakediş" value={tl(earnings)} hint="Saatlik ücret × yapılan saat" />
-        <Stat label="Yoklaması alınmamış ders" value={missing} tone={missing ? "red" : undefined} hint="Hakedişe dahil edilmedi" />
+        <Stat accent="green" icon="clock" label="Toplam ders saati" value={hoursLabel(total)} />
+        <Stat accent="blue" icon="check" label="Yapılan ders" value={reports.reduce((s, r) => s + r.lessonsDone, 0)} />
+        <Stat accent="gold" icon="wallet" label="Toplam hakediş" value={tl(earnings)} hint="Saatlik ücret × yapılan saat" />
+        <Stat accent="red" icon="alert" label="Yoklaması alınmamış ders" value={missing} tone={missing ? "red" : undefined} hint="Hakedişe dahil edilmedi" />
       </div>
       <Card padded={false}>
         {reports.length === 0 ? <Empty>Antrenör kaydı yok.</Empty> : (
@@ -45,12 +45,12 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
               </thead>
               <tbody>
                 {reports.map((r) => (
-                  <tr key={r.coach.id} className="hover:bg-stone-50">
+                  <tr key={r.coach.id} className="hover:bg-white/5">
                     <td><Link href={`/raporlar/${r.coach.id}?ay=${period}`} className="link">{r.coach.name}</Link></td>
                     <td className="text-right">{hoursLabel(r.groupMinutes)}</td>
                     <td className="text-right">{hoursLabel(r.privateMinutes)}</td>
                     <td className="text-right font-semibold">{hoursLabel(r.totalMinutes)}</td>
-                    <td className="text-right">{r.coach.hourlyRate ? tl(r.coach.hourlyRate) : <Link href={`/kullanicilar/${r.coach.id}`} className="text-xs text-clay-700 hover:underline">Ücret girin</Link>}</td>
+                    <td className="text-right">{r.coach.hourlyRate ? tl(r.coach.hourlyRate) : <Link href={`/kullanicilar/${r.coach.id}`} className="text-xs text-orange-200 hover:underline">Ücret girin</Link>}</td>
                     <td className="text-right font-semibold">{tl(r.earnings)}</td>
                     <td>{r.missingAttendance > 0 && <Badge tone="red">{r.missingAttendance} ders yoklamasız</Badge>}</td>
                   </tr>
@@ -60,7 +60,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
           </TableWrap>
         )}
       </Card>
-      <p className="mt-3 text-xs text-stone-500">
+      <p className="mt-3 text-xs text-white/65">
         Grup dersleri yoklaması alındığında “yapıldı” sayılır. Özel dersler, onaylı ve tarihi geçmiş kort rezervasyonlarından gelir.
       </p>
     </>

@@ -6,13 +6,13 @@ import { RES_STATUS_LABEL } from "@/lib/labels";
 export function ScheduleList({ items, date, showAttendance }: { items: ScheduleItem[]; date: string; showAttendance?: boolean }) {
   if (!items.length) return <Empty>Bu gün için ders veya rezervasyon yok.</Empty>;
   return (
-    <ul className="divide-y divide-stone-100">
+    <ul className="divide-y divide-white/10">
       {items.map((i) => (
         <li key={i.key} className="flex flex-wrap items-center gap-3 py-2.5">
-          <div className="w-[5.5rem] shrink-0 font-mono text-xs text-stone-700 sm:w-24 sm:text-sm">{i.start}–{i.end}</div>
+          <div className="w-[5.5rem] shrink-0 font-mono text-xs text-white/90 sm:w-24 sm:text-sm">{i.start}–{i.end}</div>
           <div className="min-w-0 flex-1">
             <div className="truncate text-sm font-medium">{i.title}</div>
-            <div className="text-xs text-stone-500">
+            <div className="text-xs text-white/65">
               {[i.court, i.coach, i.memberCount !== undefined ? `${i.memberCount} öğrenci` : null].filter(Boolean).join(" · ")}
             </div>
           </div>

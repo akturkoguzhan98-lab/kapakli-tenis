@@ -51,7 +51,7 @@ export default async function NewKarnePage({ params }: { params: Promise<{ stude
                 <fieldset key={k} className="flex flex-wrap items-center justify-between gap-2">
                   <legend className="sr-only">{label}</legend>
                   <span className="text-sm font-medium">{label}</span>
-                  <div className="flex overflow-hidden rounded-lg border border-stone-300 text-sm">
+                  <div className="flex overflow-hidden rounded-lg border border-white/25 text-sm">
                     {[1, 2, 3, 4, 5].map((n) => (
                       <label key={n} className="cursor-pointer" title={SCORE_LABEL[n]}>
                         <input type="radio" name={`skill_${k}`} value={n} defaultChecked={lastScores[k] === n} required className="peer sr-only" />
@@ -66,7 +66,7 @@ export default async function NewKarnePage({ params }: { params: Promise<{ stude
             </div>
           </Card>
         ))}
-        <p className="text-xs text-stone-500">1 Gelişmeli · 2 Temel · 3 İyi · 4 Çok iyi · 5 Mükemmel</p>
+        <p className="text-xs text-white/65">1 Gelişmeli · 2 Temel · 3 İyi · 4 Çok iyi · 5 Mükemmel</p>
         <Card title="Antrenör değerlendirmesi">
           <div className="space-y-4">
             <Field label="Güçlü yönleri"><textarea name="strengths" rows={2} className="input" /></Field>

@@ -29,12 +29,12 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
               <thead><tr><th>Ad</th><th>Rol</th><th>E-posta</th><th>Telefon</th><th>Bağlantılar</th></tr></thead>
               <tbody>
                 {users.map((u) => (
-                  <tr key={u.id} className={u.active ? "hover:bg-stone-50" : "opacity-60"}>
+                  <tr key={u.id} className={u.active ? "hover:bg-white/5" : "opacity-60"}>
                     <td><Link href={`/kullanicilar/${u.id}`} className="link">{u.name}</Link>{!u.active && <span className="ml-2"><Badge>Pasif</Badge></span>}</td>
                     <td><Badge tone={u.role === "ADMIN" ? "clay" : u.role === "COACH" ? "green" : "blue"}>{ROLE_LABEL[u.role]}</Badge></td>
                     <td className="text-xs">{u.email}</td>
                     <td className="text-xs">{u.phone ?? "—"}</td>
-                    <td className="text-xs text-stone-600">
+                    <td className="text-xs text-white/75">
                       {u.role === "PARENT" && (u.children.map(fullName).join(", ") || "Öğrenci bağlı değil")}
                       {u.role === "COACH" && `${u._count.coachGroups} grup`}
                     </td>

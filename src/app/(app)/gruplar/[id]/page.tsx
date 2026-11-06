@@ -43,12 +43,12 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
         <div className="space-y-6">
           <Card title={`Öğrenciler (${g.members.length}/${g.capacity})`}>
             {g.members.length === 0 ? <Empty>Grupta öğrenci yok.</Empty> : (
-              <ul className="divide-y divide-stone-100">
+              <ul className="divide-y divide-white/10">
                 {g.members.map(({ student: s }) => (
                   <li key={s.id} className="flex items-center justify-between py-2 text-sm">
                     <span>
                       <Link href={`/ogrenciler/${s.id}`} className="link">{fullName(s)}</Link>
-                      <span className="ml-2 text-xs text-stone-500">{ageFrom(s.birthDate) ?? "?"} yaş · {LEVEL_LABEL[s.level]}</span>
+                      <span className="ml-2 text-xs text-white/65">{ageFrom(s.birthDate) ?? "?"} yaş · {LEVEL_LABEL[s.level]}</span>
                     </span>
                     <form action={removeMember}>
                       <input type="hidden" name="groupId" value={g.id} />
@@ -60,7 +60,7 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
               </ul>
             )}
             {g.members.length < g.capacity && (
-              <ActionForm action={addMember} className="mt-4 border-t border-stone-100 pt-4">
+              <ActionForm action={addMember} className="mt-4 border-t border-white/10 pt-4">
                 <input type="hidden" name="groupId" value={g.id} />
                 <div className="flex gap-2">
                   <select name="studentId" className="input" defaultValue="">
@@ -76,11 +76,11 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
           </Card>
           <Card title="Son dersler">
             {g.lessons.length === 0 ? <Empty>Henüz yoklama alınmadı.</Empty> : (
-              <ul className="divide-y divide-stone-100 text-sm">
+              <ul className="divide-y divide-white/10 text-sm">
                 {g.lessons.map((l) => (
                   <li key={l.id} className="flex justify-between py-2">
                     <Link href={`/yoklama/${g.id}?tarih=${l.date}`} className="link">{dateLabel(l.date)}</Link>
-                    <span className="text-stone-500">{l.attendances.filter((a) => a.status === "GELDI").length}/{l.attendances.length} geldi</span>
+                    <span className="text-white/65">{l.attendances.filter((a) => a.status === "GELDI").length}/{l.attendances.length} geldi</span>
                   </li>
                 ))}
               </ul>

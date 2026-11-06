@@ -41,10 +41,10 @@ export function CandidateTable({ items, source, params = {}, empty, apiEnabled }
               )}
               <td>
                 <div className="font-medium">{c.studentName}</div>
-                <div className="text-xs text-stone-500">{c.recipientName} · {prettyPhone(c.phone) || "telefon yok"}</div>
+                <div className="text-xs text-white/65">{c.recipientName} · {prettyPhone(c.phone) || "telefon yok"}</div>
               </td>
               <td className="text-xs">{c.label}</td>
-              <td className="text-xs text-stone-600">{c.body}</td>
+              <td className="text-xs text-white/75">{c.body}</td>
               <td className="whitespace-nowrap text-xs">
                 {c.skipReason ? <Badge tone="red">{c.skipReason}</Badge>
                   : c.sentAt ? <Badge tone="green">Gönderildi {c.sentAt.toLocaleDateString("tr-TR", { timeZone: "Europe/Istanbul" })}</Badge>
@@ -62,7 +62,7 @@ export function CandidateTable({ items, source, params = {}, empty, apiEnabled }
     return (
       <>
         {table}
-        <p className="border-t border-stone-100 p-3 text-xs text-stone-500">
+        <p className="border-t border-white/10 p-3 text-xs text-white/65">
           {pending ? `${pending} mesaj bekliyor. ` : items.some((c) => c.sentAt) ? "Gönderilebilecek tüm mesajlar gönderildi. " : "Gönderilebilecek mesaj yok (telefon veya izin eksik). "}
           Düğmeye basınca WhatsApp mesaj yazılmış olarak açılır; siz sadece <b>Gönder</b>'e basın. Sistem kimin mesaj aldığını otomatik işaretler.
         </p>
@@ -74,9 +74,9 @@ export function CandidateTable({ items, source, params = {}, empty, apiEnabled }
       <input type="hidden" name="source" value={source} />
       {Object.entries(params).map(([k, v]) => <input key={k} type="hidden" name={k === "gun" ? "days" : k === "tarih" ? "date" : k} value={v} />)}
       {table}
-      <div className="flex flex-wrap items-center gap-3 border-t border-stone-100 p-3">
+      <div className="flex flex-wrap items-center gap-3 border-t border-white/10 p-3">
         <SubmitButton>Seçilenleri otomatik gönder</SubmitButton>
-        <span className="text-xs text-stone-500">{pending} mesaj bekliyor. Daha önce gönderilenler varsayılan olarak seçili değildir.</span>
+        <span className="text-xs text-white/65">{pending} mesaj bekliyor. Daha önce gönderilenler varsayılan olarak seçili değildir.</span>
       </div>
     </ActionForm>
   );

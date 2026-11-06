@@ -111,6 +111,12 @@ Akademi için ayrı bir numarayla **WhatsApp Business** uygulaması kullanmanız
 
 Hangi velinin mesaj alacağı (bildirim izni) **Kullanıcılar** sayfasından ayarlanır. İzni olmayan veliye mesaj hazırlanmaz.
 
+## Tasarım
+
+Koyu, cam görünümlü (glassmorphism) tema. Arka plan sahnesi `src/components/CourtScene.tsx` içindedir;
+`SCENE` değerini `"gece"` (projektörlü sert kort) veya `"gunbatimi"` (toprak kort) yaparak değiştirilebilir.
+Kart, düğme, form ve tablo stilleri `src/app/globals.css` dosyasındadır. Yazdırırken sayfalar beyaz zemine döner.
+
 ## Teknik
 
 Next.js 15 (App Router, Server Actions) · Cloudflare Workers (OpenNext) · Cloudflare D1 · Prisma (D1 adaptörü) · Tailwind CSS · JWT oturum (httpOnly çerez) · şifreler PBKDF2-SHA256.

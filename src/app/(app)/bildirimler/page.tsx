@@ -31,7 +31,7 @@ export default async function NotificationsPage({ searchParams }: { searchParams
     <>
       <PageHeader title="WhatsApp hatırlatmaları" subtitle="Velilere aidat ve ders hatırlatmaları" />
       {!api && (
-        <div className="mb-4 rounded-lg border border-court-100 bg-court-50 px-4 py-3 text-sm text-court-800">
+        <div className="mb-4 rounded-lg border border-lime-300/30 bg-lime-300/15 px-4 py-3 text-sm text-lime-100">
           <b>Ücretsiz elle gönderim modu:</b> “WhatsApp'ta gönder” düğmesine basınca mesaj hazır yazılmış olarak açılır, siz <b>Gönder</b>'e basarsınız.
           Bilgisayarda WhatsApp Web veya masaüstü uygulaması, telefonda WhatsApp / WhatsApp Business ile çalışır.
         </div>
@@ -105,14 +105,14 @@ async function HistoryTab() {
               {rows.map((n) => (
                 <tr key={n.id}>
                   <td className="whitespace-nowrap text-xs">{n.createdAt.toLocaleString("tr-TR", { timeZone: "Europe/Istanbul", dateStyle: "short", timeStyle: "short" })}</td>
-                  <td className="text-xs">{n.user?.name ?? "—"}<div className="text-stone-500">{prettyPhone(n.phone)}</div></td>
+                  <td className="text-xs">{n.user?.name ?? "—"}<div className="text-white/65">{prettyPhone(n.phone)}</div></td>
                   <td className="text-xs">{KIND_LABEL[n.kind]}</td>
-                  <td className="text-xs text-stone-600">{n.body}</td>
+                  <td className="text-xs text-white/75">{n.body}</td>
                   <td>
                     <Badge tone={n.status === "GONDERILDI" || n.status === "ELLE" ? "green" : n.status === "TEST" ? "amber" : "red"}>
                       {n.status === "GONDERILDI" ? "Otomatik gönderildi" : n.status === "ELLE" ? "Elle gönderildi" : n.status === "TEST" ? "Test" : "Hata"}
                     </Badge>
-                    {n.error && <div className="mt-1 max-w-[220px] text-xs text-red-700">{n.error}</div>}
+                    {n.error && <div className="mt-1 max-w-[220px] text-xs text-red-300">{n.error}</div>}
                   </td>
                 </tr>
               ))}
@@ -138,7 +138,7 @@ function SettingsTab({ settings, api }: { settings: Awaited<ReturnType<typeof ge
           {tpl.map(([k, label]) => (
             <Field key={k} label={label}>
               <textarea name={k} rows={3} defaultValue={settings[k]} className="input" />
-              <span className="mt-1 block text-xs text-stone-500">Kullanılabilir alanlar: {TEMPLATE_VARS[k]}</span>
+              <span className="mt-1 block text-xs text-white/65">Kullanılabilir alanlar: {TEMPLATE_VARS[k]}</span>
             </Field>
           ))}
           <SubmitButton>Şablonları kaydet</SubmitButton>
@@ -149,15 +149,15 @@ function SettingsTab({ settings, api }: { settings: Awaited<ReturnType<typeof ge
           {api ? (
             <p className="text-sm"><Badge tone="green">Otomatik</Badge> <span className="ml-1">{api}</span></p>
           ) : (
-            <div className="space-y-2 text-sm text-stone-700">
+            <div className="space-y-2 text-sm text-white/90">
               <p><Badge tone="green">Elle gönderim (ücretsiz)</Badge></p>
-              <p className="text-xs text-stone-500">
+              <p className="text-xs text-white/65">
                 Mesajlar akademinin WhatsApp'ından, düğmeye basılarak gönderilir. Tamamen otomatik gönderim isterseniz
                 Meta WhatsApp Business Cloud API kurulabilir (mesaj başına küçük bir ücret alınır, kurulum README'de).
               </p>
             </div>
           )}
-          <p className="mt-3 text-xs text-stone-500">Velinin WhatsApp bildirim izni Kullanıcılar sayfasından ayarlanır; izni olmayan veliye mesaj hazırlanmaz.</p>
+          <p className="mt-3 text-xs text-white/65">Velinin WhatsApp bildirim izni Kullanıcılar sayfasından ayarlanır; izni olmayan veliye mesaj hazırlanmaz.</p>
         </Card>
         <Card title="Otomatik gönderim (sadece API ile)">
           <ActionForm action={saveAutomation} className="space-y-3">
@@ -173,10 +173,10 @@ function SettingsTab({ settings, api }: { settings: Awaited<ReturnType<typeof ge
             </div>
             <SubmitButton>Kaydet</SubmitButton>
           </ActionForm>
-          <p className="mt-4 text-xs text-stone-500">
+          <p className="mt-4 text-xs text-white/65">
             {api ? "" : <><b>WhatsApp API ayarlı olmadığı için otomatik gönderim çalışmaz.</b> Gün ve tekrar ayarları elle gönderim listelerinde de kullanılır. </>}
             Otomatik gönderim için sunucuda günde bir kez şu adres çağrılır:
-            <code className="mt-1 block break-all rounded bg-stone-100 px-2 py-1">GET /api/cron/hatirlatmalar — Authorization: Bearer CRON_SECRET</code>
+            <code className="mt-1 block break-all rounded bg-white/10 px-2 py-1">GET /api/cron/hatirlatmalar — Authorization: Bearer CRON_SECRET</code>
           </p>
         </Card>
       </div>

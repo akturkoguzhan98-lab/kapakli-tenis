@@ -22,12 +22,12 @@ export function UserFields({ u, isNew }: { u?: U; isNew?: boolean }) {
           <input type="checkbox" name="active" defaultChecked={u?.active} className="h-4 w-4" /> Hesap aktif
         </label>
       )}
-      <fieldset className="grid gap-3 rounded-lg border border-stone-200 p-3 sm:col-span-2 sm:grid-cols-2">
-        <legend className="px-1 text-xs font-semibold text-stone-600">WhatsApp bildirimleri (veliler için)</legend>
+      <fieldset className="grid gap-3 rounded-lg border border-white/15 p-3 sm:col-span-2 sm:grid-cols-2">
+        <legend className="px-1 text-xs font-semibold text-white/75">WhatsApp bildirimleri (veliler için)</legend>
         <label className="flex items-center gap-2 text-sm sm:col-span-2">
           <input type="checkbox" name="notifyConsent" defaultChecked={u?.notifyConsent ?? true} className="h-4 w-4" /> Aidat/ders hatırlatmalarını WhatsApp'tan almayı kabul ediyor
         </label>
-        <p className="text-xs text-stone-500 sm:col-span-2">Mesajlar yukarıdaki telefon numarasının WhatsApp hesabına gider.</p>
+        <p className="text-xs text-white/65 sm:col-span-2">Mesajlar yukarıdaki telefon numarasının WhatsApp hesabına gider.</p>
       </fieldset>
       <Field label="Saatlik ders ücreti (antrenörler için, TL)">
         <input name="hourlyRate" type="number" min={0} step={50} defaultValue={u?.hourlyRate ?? 0} className="input" />

@@ -24,9 +24,9 @@ export default async function CoachDashboard({ user }: { user: CurrentUser }) {
     <>
       <PageHeader title={`Merhaba ${user.name.split(" ")[0]}`} subtitle={dateLabel(today)} />
       <div className="mb-6 grid grid-cols-3 gap-3">
-        <Stat label="Bugünkü ders" value={todayItems.length} />
-        <Stat label="Yoklama bekleyen" value={missing} tone={missing ? "red" : undefined} href="/yoklama" />
-        <Stat label="Gruplarımdaki öğrenci" value={students} />
+        <Stat accent="green" icon="calendar" label="Bugünkü ders" value={todayItems.length} />
+        <Stat accent="red" icon="check" label="Yoklama bekleyen" value={missing} tone={missing ? "red" : undefined} href="/yoklama" />
+        <Stat accent="blue" icon="users" label="Gruplarımdaki öğrenci" value={students} />
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
         <Card title="Bugün"><ScheduleList items={todayItems} date={today} showAttendance /></Card>
