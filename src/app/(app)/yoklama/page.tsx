@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import { requireUser } from "@/lib/auth";
 import { addDays, dateLabel, isValidDate, todayStr } from "@/lib/dates";
 import { daySchedule } from "@/lib/queries";

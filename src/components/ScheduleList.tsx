@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import { Badge, Empty } from "./ui";
 import type { ScheduleItem } from "@/lib/queries";
 import { RES_STATUS_LABEL } from "@/lib/labels";

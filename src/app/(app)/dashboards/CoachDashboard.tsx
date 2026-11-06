@@ -1,22 +1,23 @@
 import { db } from "@/lib/db";
 import type { CurrentUser } from "@/lib/auth";
 import { addDays, dateLabel, todayStr } from "@/lib/dates";
-import { daySchedule } from "@/lib/queries";
+import { rangeSchedule } from "@/lib/queries";
 import { DAY_LABEL, LEVEL_LABEL } from "@/lib/labels";
 import { Card, Empty, PageHeader, Stat } from "@/components/ui";
 import { ScheduleList } from "@/components/ScheduleList";
 
 export default async function CoachDashboard({ user }: { user: CurrentUser }) {
   const today = todayStr();
-  const [todayItems, tomorrowItems, groups] = await Promise.all([
-    daySchedule(today, { coachId: user.id }),
-    daySchedule(addDays(today, 1), { coachId: user.id }),
+  const tomorrow = addDays(today, 1);
+  const [byDay, groups] = await Promise.all([
+    rangeSchedule([today, tomorrow], { coachId: user.id }),
     db.group.findMany({
       where: { coachId: user.id, active: true },
       include: { court: true, _count: { select: { members: { where: { student: { active: true } } } } } },
       orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
     }),
   ]);
+  const todayItems = byDay[today], tomorrowItems = byDay[tomorrow];
   const students = groups.reduce((s, g) => s + g._count.members, 0);
   const missing = todayItems.filter((i) => i.groupId && !i.lessonTaken).length;
 

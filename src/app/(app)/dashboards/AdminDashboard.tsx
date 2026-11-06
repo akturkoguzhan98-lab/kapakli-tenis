@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import { db } from "@/lib/db";
 import { currentPeriod, dateLabel, periodLabel, todayStr } from "@/lib/dates";
 import { daySchedule } from "@/lib/queries";
@@ -9,8 +9,7 @@ import { approveReservation, cancelReservation } from "@/app/actions/reservation
 import { Badge, Card, Empty, PageHeader, Stat } from "@/components/ui";
 import { ScheduleList } from "@/components/ScheduleList";
 import { ConfirmButton } from "@/components/ActionForm";
-import { lessonReminders, overdueDues, upcomingDues } from "@/lib/notify/reminders";
-import { addDays } from "@/lib/dates";
+import { PendingReminders } from "@/components/PendingReminders";
 
 export default async function AdminDashboard() {
   const today = todayStr();
@@ -27,9 +26,6 @@ export default async function AdminDashboard() {
     }),
     daySchedule(today),
   ]);
-  const [od, up, ls] = await Promise.all([overdueDues(), upcomingDues(), lessonReminders(addDays(today, 1))]);
-  const waiting = (l: typeof od) => l.filter((c) => !c.skipReason && !c.sentAt).length;
-  const waDues = waiting(od) + waiting(up), waLessons = waiting(ls);
   const expected = monthPayments.reduce((s, p) => s + p.amount, 0);
   const collected = monthPayments.reduce((s, p) => s + p.paidAmount, 0);
   const overdue = unpaid.filter((p) => paymentStatus(p) === "GECIKTI");
@@ -44,18 +40,7 @@ export default async function AdminDashboard() {
         <Stat accent="red" icon="alert" label="Geciken aidat" value={overdue.length} hint={overdue.length ? tl(overdue.reduce((s, p) => s + p.amount - p.paidAmount, 0)) : "Her şey yolunda ✓"} href="/aidatlar?durum=GECIKTI" tone={overdue.length ? "red" : undefined} />
       </div>
 
-      {waDues + waLessons > 0 && (
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-lime-300/30 bg-lime-300/15 px-4 py-3 text-sm text-lime-100">
-          <span>
-            <b>Bekleyen WhatsApp hatırlatmaları:</b>{" "}
-            {[waDues ? `${waDues} aidat` : "", waLessons ? `${waLessons} yarınki ders` : ""].filter(Boolean).join(" · ")}
-          </span>
-          <span className="flex gap-2">
-            {waDues > 0 && <Link href="/bildirimler?sekme=aidat" className="btn-primary btn-sm">Aidat hatırlat</Link>}
-            {waLessons > 0 && <Link href="/bildirimler?sekme=ders" className="btn-secondary btn-sm">Ders hatırlat</Link>}
-          </span>
-        </div>
-      )}
+      <PendingReminders />
 
       <div className="grid gap-6 lg:grid-cols-5 lg:items-start">
         <Card title="Bugünün programı" className="lg:col-span-3" actions={<Link href="/program" className="link text-xs">Haftalık</Link>}>

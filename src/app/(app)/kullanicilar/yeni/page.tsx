@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import { requireUser } from "@/lib/auth";
 import { createUser } from "@/app/actions/users";
 import { ActionForm, SubmitButton } from "@/components/ActionForm";

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { addMonths, currentPeriod, dateLabel, isValidPeriod, periodLabel, todayStr } from "@/lib/dates";

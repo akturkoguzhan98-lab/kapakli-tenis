@@ -1,8 +1,8 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { addDays, dateLabel, isValidDate, startOfWeek, todayStr } from "@/lib/dates";
-import { daySchedule } from "@/lib/queries";
+import { rangeSchedule } from "@/lib/queries";
 import { DAY_LABEL } from "@/lib/labels";
 import { PageHeader } from "@/components/ui";
 
@@ -20,7 +20,8 @@ export default async function ProgramPage({ searchParams }: { searchParams: Prom
     filter = { studentIds: kids.map((k) => k.id) };
   }
   const days = Array.from({ length: 7 }, (_, i) => addDays(week, i));
-  const schedules = await Promise.all(days.map((d) => daySchedule(d, filter)));
+  const byDay = await rangeSchedule(days, filter);
+  const schedules = days.map((d) => byDay[d]);
   const q = (w: string) => `/program?hafta=${w}${sp.tum === "1" ? "&tum=1" : ""}`;
 
   return (

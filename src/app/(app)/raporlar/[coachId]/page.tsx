@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import { notFound, redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { addMonths, currentPeriod, dateLabel, hoursLabel, isValidPeriod, periodLabel } from "@/lib/dates";

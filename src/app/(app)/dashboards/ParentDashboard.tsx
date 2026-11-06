@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import { db } from "@/lib/db";
 import type { CurrentUser } from "@/lib/auth";
 import { ageFrom, dateLabel, periodLabel, todayStr } from "@/lib/dates";
