@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kapaklı Tenis Akademi</title>
+<style>
+/* =====================================================================
+   Kapaklı Tenis Akademi — tek dosya arayüz (Google Apps Script)
+   Koyu cam (glassmorphism) tema · Sunucu: Kod.gs → api()
+   ===================================================================== */
+:root { color-scheme: dark; --lime: #d9f99d; --lime-d: #1a2e05; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: #06110d; color: #fff; font-family: Inter, "Segoe UI", system-ui, -apple-system, sans-serif; font-size: 14px; -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; cursor: pointer; }
+h1 { font-size: 26px; font-weight: 650; letter-spacing: -.02em; margin: 0; text-shadow: 0 2px 16px rgba(0,0,0,.45); }
+h2 { font-size: 14px; font-weight: 600; margin: 0; }
+.hidden { display: none !important; }
+.muted { color: rgba(255,255,255,.68); } .dim { color: rgba(255,255,255,.6); } .small { font-size: 12px; } .xs { font-size: 11px; }
+.mono { font-family: ui-monospace, Menlo, Consolas, monospace; }
+.b { font-weight: 600; } .right { text-align: right; } .nowrap { white-space: nowrap; } .pre { white-space: pre-line; }
+.row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.between { justify-content: space-between; } .grow { flex: 1; min-width: 0; }
+.stack > * + * { margin-top: 12px; } .stack-lg > * + * { margin-top: 22px; }
+.grid { display: grid; gap: 16px; }
+.g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.g4 { grid-template-columns: repeat(4, minmax(0, 1fr)); } .g5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.g7 { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; }
+.span2 { grid-column: span 2; } .span3 { grid-column: span 3; }
+.mb { margin-bottom: 18px; } .mt { margin-top: 14px; } .mt-s { margin-top: 6px; }
+
+/* ---------- cam yüzeyler */
+.glass { background: linear-gradient(135deg, rgba(255,255,255,.14), rgba(255,255,255,.05)); border: 1px solid rgba(255,255,255,.2);
+  box-shadow: 0 12px 36px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.22); -webkit-backdrop-filter: blur(22px) saturate(150%); backdrop-filter: blur(22px) saturate(150%); }
+.card { min-width: 0; border-radius: 18px; background: linear-gradient(135deg, rgba(14,30,25,.74), rgba(10,22,18,.6)); border: 1px solid rgba(255,255,255,.14);
+  box-shadow: 0 14px 40px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.12); -webkit-backdrop-filter: blur(20px) saturate(140%); backdrop-filter: blur(20px) saturate(140%); }
+.card-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 13px 16px; border-bottom: 1px solid rgba(255,255,255,.1); }
+.card-b { padding: 16px; } .card-b.flush { padding: 0; }
+.tile { position: relative; overflow: hidden; border-radius: 18px; padding: 18px; display: flex; flex-direction: column; min-height: 132px;
+  border: 1px solid rgba(255,255,255,.22); box-shadow: 0 14px 40px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.3);
+  -webkit-backdrop-filter: blur(20px) saturate(150%); backdrop-filter: blur(20px) saturate(150%); transition: transform .15s; }
+a.tile:hover { transform: translateY(-2px); border-color: rgba(255,255,255,.4); }
+.t-blue { background: linear-gradient(145deg, rgba(96,165,250,.62), rgba(96,165,250,.28) 55%, rgba(12,24,20,.55)); }
+.t-purple { background: linear-gradient(145deg, rgba(167,139,250,.62), rgba(167,139,250,.28) 55%, rgba(12,24,20,.55)); }
+.t-gold { background: linear-gradient(145deg, rgba(250,204,21,.62), rgba(250,204,21,.28) 55%, rgba(12,24,20,.55)); }
+.t-green { background: linear-gradient(145deg, rgba(74,222,128,.58), rgba(74,222,128,.26) 55%, rgba(12,24,20,.55)); }
+.t-red { background: linear-gradient(145deg, rgba(248,113,113,.62), rgba(248,113,113,.28) 55%, rgba(12,24,20,.55)); }
+.tile .ico { position: absolute; right: 14px; top: 14px; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: rgba(255,255,255,.2); box-shadow: inset 0 1px 0 rgba(255,255,255,.45); }
+.tile .lbl { font-size: 13px; font-weight: 600; padding-right: 48px; line-height: 1.3; }
+.tile .val { font-size: 30px; font-weight: 700; letter-spacing: -.02em; margin-top: 4px; line-height: 1.15; }
+.tile .hint { margin-top: auto; padding-top: 10px; font-size: 12px; color: rgba(255,255,255,.78); }
+.bar { height: 6px; border-radius: 99px; background: rgba(255,255,255,.2); margin-top: 10px; overflow: hidden; } .bar i { display: block; height: 100%; border-radius: 99px; background: #fff; }
+
+/* ---------- form ve düğmeler */
+.input { display: block; width: 100%; border-radius: 12px; border: 1px solid rgba(255,255,255,.22); background: rgba(255,255,255,.1); color: #fff; padding: 9px 12px; font: inherit; font-size: 14px; outline: none; }
+.input:focus { border-color: #bef264; box-shadow: 0 0 0 3px rgba(190,242,100,.25); }
+.input::placeholder { color: rgba(255,255,255,.5); }
+select.input option { background: #10241d; color: #fff; }
+textarea.input { resize: vertical; min-height: 64px; }
+.label { display: block; font-size: 12px; font-weight: 500; color: rgba(255,255,255,.72); margin-bottom: 5px; }
+.field { display: block; }
+.check { display: flex; align-items: center; gap: 8px; font-size: 14px; } .check input { width: 17px; height: 17px; accent-color: #a3e635; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 999px; padding: 8px 16px; font-size: 14px; font-weight: 600; border: 1px solid transparent; transition: .15s; white-space: nowrap; }
+.btn:disabled { opacity: .6; cursor: not-allowed; }
+.btn-p { background: var(--lime); color: var(--lime-d); box-shadow: 0 6px 20px rgba(190,242,100,.25); } .btn-p:hover { background: #ecfccb; }
+.btn-s { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.25); color: #fff; } .btn-s:hover { background: rgba(255,255,255,.2); }
+.btn-d { background: rgba(239,68,68,.1); border-color: rgba(248,113,113,.4); color: #fecaca; } .btn-d:hover { background: rgba(239,68,68,.25); }
+.btn-sm { padding: 4px 12px; font-size: 12px; } .btn-w { width: 100%; }
+.link { color: #d9f99d; font-weight: 500; cursor: pointer; } .link:hover { text-decoration: underline; }
+.msg { margin: 12px 0 0; border-radius: 10px; padding: 9px 12px; font-size: 13px; }
+.msg.err { background: rgba(239,68,68,.15); color: #fca5a5; } .msg.ok { background: rgba(190,242,100,.15); color: #ecfccb; }
+.seg { display: inline-flex; border: 1px solid rgba(255,255,255,.25); border-radius: 10px; overflow: hidden; }
+.seg label { cursor: pointer; } .seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg span { display: block; padding: 6px 12px; min-width: 42px; text-align: center; font-size: 13px; }
+.seg input:checked + span { color: #fff; background: #24663f; } .seg input.no:checked + span { background: #dc2626; } .seg input.ex:checked + span { background: #f59e0b; color: #1c1917; }
+.seg input:focus-visible + span { outline: 2px solid #bef264; outline-offset: -2px; }
+
+/* ---------- rozet */
+.badge { display: inline-flex; align-items: center; white-space: nowrap; border-radius: 999px; padding: 2px 9px; font-size: 12px; font-weight: 500; box-shadow: inset 0 0 0 1px var(--r); background: var(--bg); color: var(--fg); }
+.b-green { --bg: rgba(190,242,100,.15); --fg: #d9f99d; --r: rgba(190,242,100,.3); } .b-red { --bg: rgba(239,68,68,.15); --fg: #fca5a5; --r: rgba(248,113,113,.3); }
+.b-amber { --bg: rgba(251,191,36,.15); --fg: #fde68a; --r: rgba(252,211,77,.3); } .b-clay { --bg: rgba(251,146,60,.15); --fg: #fed7aa; --r: rgba(253,186,116,.3); }
+.b-gray { --bg: rgba(255,255,255,.1); --fg: rgba(255,255,255,.78); --r: rgba(255,255,255,.2); } .b-blue { --bg: rgba(56,189,248,.15); --fg: #bae6fd; --r: rgba(125,211,252,.3); }
+
+/* ---------- tablolar (telefonda kart) */
+.tw { overflow-x: auto; }
+.table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.table th { text-align: left; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.62); padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,.1); }
+.table td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,.06); vertical-align: middle; }
+.table tr:last-child td { border-bottom: 0; } .table tbody tr:hover { background: rgba(255,255,255,.04); }
+.list-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 11px 0; border-bottom: 1px solid rgba(255,255,255,.08); }
+.list-row:last-child { border-bottom: 0; }
+.empty { text-align: center; padding: 26px 10px; color: rgba(255,255,255,.65); font-size: 14px; }
+
+/* ---------- üst menü */
+header.top { position: sticky; top: 0; z-index: 30; padding: 12px 20px 4px; background: linear-gradient(to bottom, #03080c, rgba(3,8,12,.7) 60%, transparent); }
+.topbar { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; padding: 8px 12px; border-radius: 999px; background-color: rgba(8,20,15,.6); }
+.brand { display: flex; align-items: center; gap: 10px; flex: none; padding-right: 8px; cursor: pointer; }
+.brand img { width: 36px; height: 36px; border-radius: 50%; } .brand b { display: block; font-size: 14px; line-height: 1.1; } .brand small { display: block; font-size: 11px; color: rgba(255,255,255,.7); }
+nav.pills { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; margin: 0 auto; }
+nav.pills::-webkit-scrollbar { display: none; }
+.pill { display: flex; align-items: center; gap: 6px; flex: none; border-radius: 999px; padding: 7px 12px; font-size: 13px; font-weight: 500; color: rgba(255,255,255,.82); border: 1px solid transparent; cursor: pointer; }
+.pill:hover { background: rgba(255,255,255,.1); color: #fff; }
+.pill.on { background: rgba(255,255,255,.2); border-color: rgba(255,255,255,.35); color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,.35); }
+.acct { position: relative; flex: none; }
+.avatar { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; color: #431407; background: linear-gradient(135deg, #fcd34d, #f97316); border: 0; box-shadow: 0 0 0 2px rgba(255,255,255,.3); }
+.avatar.ring { box-shadow: 0 0 0 2px #fff; }
+.menu { position: absolute; right: 0; top: 46px; width: 240px; padding: 8px; background: rgba(12,28,23,.96) !important; z-index: 40; }
+.menu .mi { display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 8px; border-radius: 8px; background: none; border: 0; text-align: left; font-size: 14px; color: rgba(255,255,255,.92); }
+.menu .mi:hover { background: rgba(255,255,255,.1); } .menu .mi.on { background: rgba(255,255,255,.15); } .menu .mi.red { color: #fca5a5; }
+.menu hr { border: 0; border-top: 1px solid rgba(255,255,255,.1); margin: 4px 0; }
+main { position: relative; z-index: 10; padding: 24px 20px 48px; } .wrap { max-width: 1400px; margin: 0 auto; }
+.ph { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 22px; }
+.ph p { margin: 4px 0 0; color: rgba(255,255,255,.7); font-size: 14px; }
+.toast { position: fixed; left: 50%; top: 16px; transform: translateX(-50%); z-index: 100; padding: 10px 16px; border-radius: 12px; font-size: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.4); max-width: 92vw; }
+.toast.ok { background: #1f3d17; color: #ecfccb; border: 1px solid rgba(190,242,100,.4); } .toast.err { background: #45130f; color: #fecaca; border: 1px solid rgba(248,113,113,.4); }
+.loading { display: grid; place-items: center; padding: 70px 0; color: rgba(255,255,255,.7); }
+.spin { width: 30px; height: 30px; border-radius: 50%; border: 3px solid rgba(255,255,255,.2); border-top-color: #d9f99d; animation: spin .8s linear infinite; margin-bottom: 10px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------- sahneler */
+.scene { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.login { position: relative; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 40px 16px; overflow: hidden; background: #0f2d1c; }
+.login .box { position: relative; z-index: 2; width: 100%; max-width: 384px; }
+.login .head { text-align: center; margin-bottom: 24px; text-shadow: 0 2px 12px rgba(0,0,0,.45); }
+.login .logo { width: 120px; height: 120px; border-radius: 50%; box-shadow: 0 18px 40px rgba(0,0,0,.45), 0 0 0 4px rgba(255,255,255,.2); }
+@keyframes rollIn { 0% { transform: translate(55vmin,45vmin) rotate(260deg); opacity: 0; } 15% { opacity: 1; } 100% { transform: none; opacity: 1; } }
+@keyframes floaty { 0%,100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-1.4vmin) rotate(-3deg); } }
+@keyframes drop { 0% { transform: translateY(-45vmin); opacity: 0; animation-timing-function: cubic-bezier(.55,0,1,.45); } 10% { opacity: 1; }
+  50% { transform: translateY(0) scale(1.08,.9); animation-timing-function: cubic-bezier(0,.55,.45,1); } 68% { transform: translateY(-9vmin); animation-timing-function: cubic-bezier(.55,0,1,.45); }
+  82% { transform: translateY(0) scale(1.04,.95); animation-timing-function: cubic-bezier(0,.55,.45,1); } 91% { transform: translateY(-2.5vmin); animation-timing-function: cubic-bezier(.55,0,1,.45); } 100% { transform: none; opacity: 1; } }
+@keyframes draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+.a-roll { animation: rollIn 1.5s cubic-bezier(.22,.8,.25,1) .1s both; } .a-float { animation: floaty 7s ease-in-out 1.7s infinite; }
+.a-drop { animation: drop 1.3s .45s both; transform-origin: 50% 100%; } .a-draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw 1.1s ease-out both; }
+.a-fade { animation: fadeIn .8s ease-out 1s both; } .a-rise { animation: rise .7s cubic-bezier(.2,.8,.2,1) .25s both; } .a-rise2 { animation: rise .7s cubic-bezier(.2,.8,.2,1) .4s both; }
+@media (prefers-reduced-motion: reduce) { .a-roll, .a-float, .a-drop, .a-fade, .a-rise, .a-rise2 { animation: none; } .a-draw { animation: none; stroke-dashoffset: 0; } }
+
+/* ---------- haftalık program, kortlar, karne */
+.day { display: flex; flex-direction: column; } .day.today { box-shadow: 0 0 0 2px rgba(190,242,100,.8); }
+.ev { border-left: 4px solid; border-radius: 8px; padding: 6px 8px; font-size: 12px; margin-bottom: 8px; display: block; }
+.ev-g { border-color: #bef264; background: rgba(190,242,100,.14); } .ev-p { border-color: #fb923c; background: rgba(251,146,60,.15); }
+.ev-k { border-color: #38bdf8; background: rgba(56,189,248,.15); } .ev-w { border-color: #fbbf24; background: rgba(251,191,36,.15); }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 14px; font-size: 12px; color: rgba(255,255,255,.75); } .legend i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+.cgrid { width: 100%; min-width: 480px; table-layout: fixed; border-collapse: separate; border-spacing: 4px; font-size: 12px; }
+.cell { height: 38px; border-radius: 6px; padding: 4px 6px; font-size: 11px; line-height: 1.25; overflow: hidden; }
+.c-free { border: 1px dashed rgba(255,255,255,.18); color: rgba(255,255,255,.6); } .c-g { background: rgba(52,211,153,.2); color: #bbf7d0; }
+.c-p { background: rgba(251,146,60,.22); color: #fed7aa; } .c-k { background: rgba(56,189,248,.22); color: #bae6fd; } .c-w { background: rgba(251,191,36,.22); color: #fde68a; }
+.skill { display: grid; grid-template-columns: minmax(0,12rem) 1fr 5.5rem; gap: 12px; align-items: center; margin-bottom: 9px; }
+.track { position: relative; height: 20px; } .track .grid5 { position: absolute; inset: 0; display: flex; justify-content: space-between; } .track .grid5 span { width: 1px; background: rgba(255,255,255,.1); }
+.track .fill { position: absolute; top: 50%; height: 10px; transform: translateY(-50%); border-radius: 99px; background: linear-gradient(to right, #a3e635, #d9f99d); }
+.track .prev { position: absolute; top: 0; height: 100%; width: 2px; background: rgba(255,255,255,.8); box-shadow: 0 0 0 2px #0d201a; }
+.note { border-radius: 12px; background: rgba(255,255,255,.05); padding: 12px; }
+
+/* ---------- duyarlılık */
+@media (max-width: 1279px) {
+  .topbar { flex-wrap: wrap; border-radius: 22px; } nav.pills { order: 3; width: 100%; margin: 0; }
+  .acct { margin-left: auto; }
+}
+@media (max-width: 1100px) { .g5 { grid-template-columns: repeat(3, minmax(0,1fr)); } .g7 { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+@media (max-width: 900px) { .g3, .g4 { grid-template-columns: repeat(2, minmax(0,1fr)); } .span2, .span3 { grid-column: auto; } .g2.lay { grid-template-columns: 1fr; } }
+@media (max-width: 640px) {
+  header.top { padding: 10px 10px 4px; } main { padding: 18px 12px 40px; } h1 { font-size: 23px; }
+  .g2, .g3, .g5 { grid-template-columns: minmax(0,1fr); } .g4 { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; } .g7 { grid-template-columns: minmax(0,1fr); }
+  .tile { padding: 14px; min-height: 118px; } .tile .val { font-size: 25px; } .tile .ico { width: 34px; height: 34px; right: 10px; top: 10px; } .tile .lbl { padding-right: 40px; }
+  .card, .glass { -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+  .table thead { display: none; } .table, .table tbody { display: block; width: 100%; }
+  .table tr { display: block; padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .table td { display: flow-root; padding: 3px 0; border: 0; text-align: right; }
+  .table td::before { content: attr(data-label); float: left; margin-right: 14px; max-width: 42%; text-align: left; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: rgba(255,255,255,.6); padding-top: 2px; }
+  .table td[data-label=""]::before { display: none; } .table td:first-child { display: block; text-align: left; font-size: 15px; padding-bottom: 6px; } .table td:first-child::before { display: none; }
+  .table td > form, .table td > .row { display: inline-flex; justify-content: flex-end; }
+  .skill { grid-template-columns: minmax(0,8rem) 1fr 4.5rem; }
+}
+/* ---------- yazdırma */
+@media print {
+  @page { margin: 14mm; }
+  .scene, header.top, .noprint, .toast { display: none !important; }
+  html:root, html:root body { background: #fff !important; }
+  *:not(.pk) { color: #111 !important; background: transparent !important; box-shadow: none !important; text-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+  .card { border-color: #ddd !important; } main { padding: 0; }
+  .ph > .row, .btn { display: none !important; } .grid { display: block !important; } .grid > * + * { margin-top: 12px; }
+  .note { border: 1px solid #ddd; } .track .prev { background: #555 !important; box-shadow: none !important; } .pk { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #24663f !important; }
+  .printonly { display: block !important; }
+}
+.printonly { display: none; }
+</style>
+</head>
+<body>
+<div id="scene"></div>
+<div id="app"><div class="loading"><div><div class="spin"></div>Yükleniyor…</div></div></div>
+<div id="toast" class="toast hidden"></div>
+
+<script>
+/* =====================================================================
+   Uygulama
+   ===================================================================== */
+const LOGO = "__LOGO_DATA_URI__";
+const LEVELS = ['BASLANGIC', 'ORTA', 'ILERI', 'PERFORMANS'];
+const LEVEL = { BASLANGIC: 'Başlangıç', ORTA: 'Orta', ILERI: 'İleri', PERFORMANS: 'Performans' };
+const DAY = { 1: 'Pazartesi', 2: 'Salı', 3: 'Çarşamba', 4: 'Perşembe', 5: 'Cuma', 6: 'Cumartesi', 7: 'Pazar' };
+const ROLE = { ADMIN: 'Yönetici', COACH: 'Antrenör', PARENT: 'Veli' };
+const SURFACE = { TOPRAK: 'Toprak', SERT: 'Sert', CIM: 'Çim' };
+const ATT = { GELDI: 'Geldi', GELMEDI: 'Gelmedi', IZINLI: 'İzinli' }, ATT_T = { GELDI: 'green', GELMEDI: 'red', IZINLI: 'amber' };
+const RES_TYPE = { KIRALAMA: 'Kort kiralama', OZEL_DERS: 'Özel ders' }, RES_ST = { ONAYLI: 'Onaylı', BEKLEMEDE: 'Onay bekliyor', IPTAL: 'İptal' };
+const PAY_M = { NAKIT: 'Nakit', KART: 'Kredi kartı', HAVALE: 'Havale/EFT' };
+const PAY_ST = { ODENDI: 'Ödendi', KISMI: 'Kısmi ödendi', BEKLIYOR: 'Bekliyor', GECIKTI: 'Gecikti' }, PAY_T = { ODENDI: 'green', KISMI: 'amber', BEKLIYOR: 'gray', GECIKTI: 'red' };
+const SKILL_GROUPS = [['Teknik', [['forehand', 'Forehand'], ['backhand', 'Backhand'], ['servis', 'Servis'], ['vole', 'Vole ve smaç']]],
+  ['Fiziksel', [['ayak', 'Ayak hareketleri'], ['kondisyon', 'Kondisyon ve koordinasyon']]], ['Oyun ve tutum', [['taktik', 'Oyun bilgisi ve taktik'], ['tutum', 'Disiplin ve motivasyon']]]];
+const SCORE = { 1: 'Gelişmeli', 2: 'Temel', 3: 'İyi', 4: 'Çok iyi', 5: 'Mükemmel' };
+
+const NAV = {
+  ADMIN: [['/', 'Genel bakış', 'home'], ['/ogrenciler', 'Öğrenciler', 'users'], ['/gruplar', 'Gruplar', 'layers'], ['/program', 'Program', 'calendar'],
+    ['/yoklama', 'Yoklama', 'check'], ['/kortlar', 'Kortlar', 'court'], ['/aidatlar', 'Aidatlar', 'wallet'], ['/bildirimler', 'WhatsApp', 'chat'], ['/karne', 'Karne', 'star'],
+    ['/raporlar', 'Ders saati raporu', 'clock', 1], ['/kullanicilar', 'Kullanıcılar', 'user', 1]],
+  COACH: [['/', 'Bugün', 'home'], ['/program', 'Program', 'calendar'], ['/yoklama', 'Yoklama', 'check'], ['/karne', 'Karne', 'star'], ['/raporlar', 'Ders saatlerim', 'clock'], ['/kortlar', 'Kortlar', 'court']],
+  PARENT: [['/', 'Çocuklarım', 'heart'], ['/program', 'Ders programı', 'calendar'], ['/kortlar', 'Kort rezervasyonu', 'court']],
+};
+const ICONS = {
+  home: 'M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z', users: 'M9 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21c0-4 3-7 7-7s7 3 7 7M16 4a4 4 0 0 1 0 8M22 21c0-3-2-6-5-7',
+  layers: 'M12 3l9 5-9 5-9-5zM3 13l9 5 9-5', calendar: 'M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM3 10h18M8 3v4M16 3v4',
+  check: 'M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9', court: 'M5 3h14a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM4 12h16M7 3v18M17 3v18M7 7.5h10M7 16.5h10M12 7.5v9',
+  wallet: 'M5 6h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2zM16 13h2M3 10h18', chat: 'M4 20l1.5-4A8 8 0 1 1 9 19z',
+  star: 'M12 3l2.8 5.9 6.2.8-4.6 4.3 1.2 6.2L12 17l-5.6 3.2 1.2-6.2L3 9.7l6.2-.8z', clock: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2',
+  user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4 4-7 8-7s8 3 8 7', alert: 'M12 3l10 18H2zM12 10v5M12 18v.5', trend: 'M3 17l6-6 4 4 8-8M15 7h6v6',
+  heart: 'M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z',
+};
+const WA_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.7-1.2 2.2 2.2 0 0 0 .2-1.2c-.1-.1-.3-.2-.5-.3Z"/></svg>';
+
+// ---------------------------------------------------------------- yardımcılar
+const $ = (s, el) => (el || document).querySelector(s);
+const esc = (v) => String(v === null || v === undefined ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const attr = (o) => esc(JSON.stringify(o));
+const tl = (n) => '₺' + String(Math.round(n || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+const ic = (n, s) => `<svg width="${s || 16}" height="${s || 16}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${ICONS[n]}"/></svg>`;
+const todayStr = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Istanbul' }).format(new Date());
+function ageFrom(bd) { if (!bd) return null; const t = todayStr(); let a = +t.slice(0, 4) - +bd.slice(0, 4); if (t.slice(5) < bd.slice(5)) a--; return a; }
+const hours = (m) => { const h = Math.floor(m / 60), r = m % 60; return r ? `${h} sa ${r} dk` : `${h} sa`; };
+const fmt1 = (n) => (n === null || n === undefined ? '—' : n.toFixed(1).replace('.', ','));
+const qs = (o) => { const p = Object.entries(o).filter(([, v]) => v !== undefined && v !== null && v !== ''); return p.length ? '?' + p.map(([k, v]) => k + '=' + encodeURIComponent(v)).join('&') : ''; };
+
+// ---------------------------------------------------------------- oturum ve sunucu
+let TOKEN = null, ME = null;
+try { TOKEN = localStorage.getItem('kta_token'); } catch (e) {}
+function setToken(t) { TOKEN = t; try { t ? localStorage.setItem('kta_token', t) : localStorage.removeItem('kta_token'); } catch (e) {} }
+
+function call(action, args) {
+  return new Promise((resolve, reject) => {
+    google.script.run
+      .withSuccessHandler((txt) => {
+        let r; try { r = JSON.parse(txt); } catch (e) { return reject(new Error('Sunucudan beklenmeyen yanıt.')); }
+        if (r.auth) { setToken(null); ME = null; go('/giris'); return reject(new Error(r.error)); }
+        r.ok ? resolve(r.data) : reject(new Error(r.error));
+      })
+      .withFailureHandler((e) => reject(new Error('Sunucuya ulaşılamadı: ' + ((e && e.message) || e))))
+      .api(action, args || {}, TOKEN);
+  });
+}
+
+// ---------------------------------------------------------------- yönlendirme
+function route() {
+  const h = location.hash.replace(/^#/, '') || '/';
+  const [path, query] = h.split('?');
+  const q = {};
+  (query || '').split('&').filter(Boolean).forEach((kv) => { const [k, v] = kv.split('='); q[decodeURIComponent(k)] = decodeURIComponent(v || ''); });
+  return { path, parts: path.split('/').filter(Boolean), q };
+}
+function go(path) { if (location.hash === '#' + path) render(); else location.hash = path; }
+window.addEventListener('hashchange', () => render());
+
+let flashMsg = null;
+function toast(text, kind) {
+  const t = $('#toast'); t.textContent = text; t.className = 'toast ' + (kind || 'ok');
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.add('hidden'), kind === 'err' ? 6000 : 3500);
+}
+
+// ---------------------------------------------------------------- arayüz parçaları
+const badge = (tone, t) => `<span class="badge b-${tone}">${esc(t)}</span>`;
+const empty = (t) => `<p class="empty">${t}</p>`;
+const ph = (title, sub, actions) => `<div class="ph"><div><h1>${esc(title)}</h1>${sub ? `<p>${sub}</p>` : ''}</div>${actions ? `<div class="row">${actions}</div>` : ''}</div>`;
+const card = (title, body, o) => { o = o || {}; return `<section class="card ${o.cls || ''}">${title ? `<div class="card-h"><h2>${title}</h2>${o.act || ''}</div>` : ''}<div class="card-b ${o.flush ? 'flush' : ''}">${body}</div></section>`; };
+const btn = (href, t, cls) => `<a class="btn ${cls || 'btn-s'}" href="#${href}">${t}</a>`;
+const field = (label, inner, cls) => `<label class="field ${cls || ''}"><span class="label">${label}</span>${inner}</label>`;
+const inp = (name, val, o) => { o = o || {}; return `<input class="input" name="${name}" value="${esc(val)}" ${o.type ? `type="${o.type}"` : ''} ${o.req ? 'required' : ''} ${o.ph ? `placeholder="${esc(o.ph)}"` : ''} ${o.extra || ''}>`; };
+const sel = (name, opts, val, o) => `<select class="input" name="${name}" ${o || ''}>${opts.map(([v, l]) => `<option value="${esc(v)}" ${String(v) === String(val === null || val === undefined ? '' : val) ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
+const chk = (name, on, label) => `<label class="check"><input type="checkbox" name="${name}" ${on ? 'checked' : ''}> ${label}</label>`;
+function table(heads, rows, o) {
+  o = o || {};
+  if (!rows.length) return empty(o.empty || 'Kayıt yok.');
+  return `<div class="tw"><table class="table"><thead><tr>${heads.map((h) => `<th class="${h[1] || ''}">${h[0]}</th>`).join('')}</tr></thead><tbody>${rows.map((r) => `<tr class="${r.cls || ''}">${r.map((c, i) => `<td data-label="${esc(heads[i][0])}" class="${heads[i][1] || ''}">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+function stat(o) {
+  const inner = `${o.icon ? `<span class="ico">${ic(o.icon, 19)}</span>` : ''}<div class="lbl">${esc(o.label)}</div><div class="val">${o.value}</div>${o.progress !== undefined ? `<div class="bar"><i class="pk" style="width:${Math.round(Math.max(0, Math.min(1, o.progress)) * 100)}%;background:#fff"></i></div>` : ''}<div class="hint">${o.hint !== undefined ? esc(o.hint) : o.href ? 'Tümünü gör →' : ''}</div>`;
+  return o.href ? `<a class="tile t-${o.accent}" href="#${o.href}">${inner}</a>` : `<div class="tile t-${o.accent}">${inner}</div>`;
+}
+/** Sunucu işlemi yapan form: data-api, data-go (başarıda git), data-reload (yeniden çiz), data-reset */
+const form = (api, body, o) => { o = o || {}; return `<form data-api="${api}" ${o.go ? `data-go="${o.go}"` : ''} ${o.reload ? 'data-reload' : ''} ${o.reset ? 'data-reset' : ''} ${o.confirm ? `data-confirm="${esc(o.confirm)}"` : ''} class="${o.cls || ''}">${o.hidden ? Object.entries(o.hidden).map(([k, v]) => `<input type="hidden" name="${k}" value="${esc(v)}">`).join('') : ''}${body}<p class="msg hidden"></p></form>`; };
+/** Tek tıkla sunucu işlemi: data-act + data-args */
+const act = (api, args, label, cls, confirm) => `<button type="button" class="btn ${cls || 'btn-s btn-sm'}" data-act="${api}" data-args="${attr(args)}" ${confirm ? `data-confirm="${esc(confirm)}"` : ''}>${label}</button>`;
+const submit = (t, cls) => `<button type="submit" class="btn ${cls || 'btn-p'}">${t}</button>`;
+const waBtn = (args, url, sent, primary) => `<a class="btn ${primary && !sent ? 'btn-p' : 'btn-s'} btn-sm" href="${esc(url)}" target="_blank" rel="noopener" data-walog="${attr(args)}">${WA_SVG} ${sent ? 'Tekrar gönder' : "WhatsApp'ta gönder"}</a>`;
+
+// ---------------------------------------------------------------- sahneler (arka plan)
+const L = 23.77 / 2, DW = 10.97 / 2, SW = 8.23 / 2, SV = 6.4;
+const LINES = [[-L, -DW, L, -DW], [-L, DW, L, DW], [-L, -DW, -L, DW], [L, -DW, L, DW], [-L, -SW, L, -SW], [-L, SW, L, SW], [-SV, -SW, -SV, SW], [SV, -SW, SV, SW], [-SV, 0, SV, 0], [-L, 0, -L + 0.3, 0], [L, 0, L - 0.3, 0]];
+function ballSvg(id) {
+  return `<svg viewBox="0 0 100 100" style="width:100%;height:100%"><defs><radialGradient id="${id}" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#f1f78a"/><stop offset=".55" stop-color="#cfe03a"/><stop offset="1" stop-color="#8fa21c"/></radialGradient></defs>
+  <circle cx="50" cy="50" r="48" fill="url(#${id})"/><path d="M8 30 C 32 40, 32 60, 8 72" stroke="#fbfbf3" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M92 28 C 68 40, 68 60, 92 70" stroke="#fbfbf3" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg>`;
+}
+function loginScene() {
+  const lines = LINES.map((l, i) => `<line class="a-draw" pathLength="1" style="animation-delay:${0.15 + i * 0.07}s" x1="${l[0]}" y1="${l[1]}" x2="${l[2]}" y2="${l[3]}"/>`).join('');
+  return `<div style="position:absolute;inset:0;pointer-events:none;overflow:hidden" aria-hidden="true">
+    <div style="position:absolute;inset:0;background:radial-gradient(circle at 20% 15%,#1f5a3a 0%,#0f2d1c 60%,#0a1f13 100%)"></div>
+    <svg style="position:absolute;inset:0;width:100%;height:100%;opacity:.14" viewBox="-19 -10.5 38 21" preserveAspectRatio="xMidYMid slice"><g stroke="#fff" stroke-width=".08" fill="none">${lines}</g></svg>
+    <div style="position:absolute;right:-12vmin;bottom:-14vmin;width:62vmin;height:62vmin"><div class="a-float" style="width:100%;height:100%"><div class="a-roll" style="width:100%;height:100%;filter:drop-shadow(0 30px 50px rgba(0,0,0,.5))">${ballSvg('lb1')}</div></div></div>
+    <div style="position:absolute;left:6vmin;top:8vmin;width:11vmin;height:11vmin"><div class="a-drop" style="width:100%;height:100%;opacity:.9;filter:drop-shadow(0 10px 18px rgba(0,0,0,.45))">${ballSvg('lb2')}</div></div></div>`;
+}
+function courtScene() {
+  const vl = LINES.map((l) => `<line x1="${l[1]}" y1="${l[0]}" x2="${l[3]}" y2="${l[2]}"/>`).join('');
+  const court = `<svg viewBox="-7.2 -14 14.4 28" preserveAspectRatio="none" style="display:block;width:100%;height:100%"><rect x="-7.2" y="-14" width="14.4" height="28" fill="#1d6a48"/>
+    <rect x="${-DW}" y="${-L}" width="${2 * DW}" height="${2 * L}" fill="#1f5f8b"/><g stroke="#fff" stroke-width=".09" fill="none">${vl}</g>
+    <line x1="${-DW - 0.9}" y1="0" x2="${DW + 0.9}" y2="0" stroke="#e9eef2" stroke-width=".12"/><line x1="${-DW - 0.9}" y1=".35" x2="${DW + 0.9}" y2=".35" stroke="#000" stroke-width=".5" opacity=".25"/></svg>`;
+  const lights = [[6, 8, 260], [4, 30, 160], [4, 62, 160], [6, 84, 260]].map(([t, l, s]) => `<div style="position:absolute;top:${t}%;left:${l}%;width:${s}px;height:${s}px;border-radius:50%;background:radial-gradient(circle,#fffbe8 0%,rgba(255,244,200,.55) 18%,rgba(255,240,190,0) 70%)"></div>`).join('');
+  return `<div class="scene" style="background:linear-gradient(180deg,#03070d 0%,#071622 35%,#0b2b2a 70%,#0d3a2a 100%)" aria-hidden="true">${lights}
+    <div style="position:absolute;left:0;right:0;top:30%;height:16%;opacity:.9;background:repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 2px,transparent 2px 22px),linear-gradient(180deg,#0a1a24,#0c2630)"></div>
+    <div style="position:absolute;inset:0;mix-blend-mode:screen;background:conic-gradient(from 160deg at 12% 10%,rgba(255,245,210,0) 0deg,rgba(255,245,210,.1) 18deg,rgba(255,245,210,0) 40deg),conic-gradient(from 160deg at 88% 10%,rgba(255,245,210,0) 0deg,rgba(255,245,210,.1) 18deg,rgba(255,245,210,0) 40deg)"></div>
+    <div style="position:absolute;inset:0;perspective:760px;perspective-origin:50% 0%"><div style="position:absolute;left:-60%;width:220%;bottom:-12%;height:118vh;transform:rotateX(64deg);transform-origin:50% 100%;background:#1d6a48">
+      <div style="position:absolute;left:50%;transform:translateX(-50%);bottom:2%;width:30%;height:88%;box-shadow:0 0 120px rgba(0,0,0,.35)">${court}</div></div></div>
+    <div class="a-roll" style="position:absolute;right:-6vmin;bottom:-10vmin;width:42vmin;height:42vmin;filter:blur(5px) drop-shadow(0 30px 40px rgba(0,0,0,.5))">${ballSvg('cb1')}</div>
+    <div class="a-drop" style="position:absolute;left:4vmin;bottom:16vmin;width:9vmin;height:9vmin;opacity:.8;filter:blur(2px)">${ballSvg('cb2')}</div>
+    <div style="position:absolute;inset:0;background:rgba(4,12,16,.38)"></div></div>`;
+}
+
+// ---------------------------------------------------------------- iskelet
+function shell(content) {
+  const r = route(), items = NAV[ME.role];
+  const active = (p) => (p === '/' ? r.path === '/' : r.path.indexOf(p) === 0);
+  const prim = items.filter((i) => !i[3]), sec = items.filter((i) => i[3]);
+  const initials = ME.name.split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toLocaleUpperCase('tr');
+  return `<header class="top noprint"><div class="topbar glass">
+      <a class="brand" href="#/"><img src="${LOGO}" alt=""><span><b>Kapaklı Tenis</b><small>Akademi</small></span></a>
+      <nav class="pills" id="pills" aria-label="Ana menü">${prim.map((i) => `<a class="pill ${active(i[0]) ? 'on' : ''}" ${active(i[0]) ? 'data-on="1" aria-current="page"' : ''} href="#${i[0]}">${ic(i[2], 15)}${i[1]}</a>`).join('')}</nav>
+      <div class="acct"><button class="avatar ${sec.some((i) => active(i[0])) ? 'ring' : ''}" id="acctBtn" aria-label="Hesap menüsü" aria-haspopup="menu">${esc(initials)}</button>
+        <div class="menu card hidden" id="acctMenu" role="menu"><div style="padding:4px 8px 8px"><div class="b">${esc(ME.name)}</div><div class="small muted">${ROLE[ME.role]}</div></div>
+        ${sec.length ? '<hr>' + sec.map((i) => `<a class="mi ${active(i[0]) ? 'on' : ''}" href="#${i[0]}" role="menuitem">${ic(i[2], 15)} ${i[1]}</a>`).join('') + '<hr>' : '<hr>'}
+        <a class="mi" href="#/profil" role="menuitem">Şifre değiştir</a><button class="mi red" data-logout role="menuitem">Çıkış yap</button></div></div>
+    </div></header>
+    <main><div class="wrap">${content}</div></main>`;
+}
+
+function setupNav() {
+  const btnA = $('#acctBtn'), menu = $('#acctMenu');
+  if (btnA) btnA.onclick = (e) => { e.stopPropagation(); menu.classList.toggle('hidden'); };
+  const pills = $('#pills');
+  if (pills) {
+    const on = pills.querySelector('[data-on]'); if (on) on.scrollIntoView({ block: 'nearest', inline: 'center' });
+    const fade = () => {
+      const l = pills.scrollLeft > 4, rr = pills.scrollLeft + pills.clientWidth < pills.scrollWidth - 4;
+      const m = l && rr ? 'linear-gradient(to right,transparent,#000 28px,#000 calc(100% - 28px),transparent)' : rr ? 'linear-gradient(to right,#000 calc(100% - 28px),transparent)' : l ? 'linear-gradient(to right,transparent,#000 28px)' : 'none';
+      pills.style.maskImage = m; pills.style.webkitMaskImage = m;
+    };
+    pills.onscroll = fade; fade(); window.onresize = fade;
+  }
+}
+document.addEventListener('click', (e) => { const m = $('#acctMenu'); if (m && !m.classList.contains('hidden') && !e.target.closest('.acct')) m.classList.add('hidden'); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { const m = $('#acctMenu'); if (m) m.classList.add('hidden'); } });
+
+// ---------------------------------------------------------------- çizim döngüsü
+let renderSeq = 0;
+async function render() {
+  const seq = ++renderSeq;
+  const r = route(), app = $('#app');
+  try {
+    if (!TOKEN) {
+      const st = await call('auth.status');
+      if (seq !== renderSeq) return;
+      $('#scene').innerHTML = '';
+      app.innerHTML = st.needsSetup ? viewSetup() : viewLogin();
+      return;
+    }
+    if (!ME) ME = await call('auth.me');
+    if (r.path === '/giris' || r.path === '/kurulum') { go('/'); return; }
+    if (!$('#scene').innerHTML) $('#scene').innerHTML = courtScene();
+    if (!$('header.top')) app.innerHTML = shell('<div class="loading"><div><div class="spin"></div>Yükleniyor…</div></div>');
+    const view = VIEWS.find((v) => v[0].test(r.path));
+    const html = view ? await view[1](r) : ph('Sayfa bulunamadı', '<a class="link" href="#/">Ana sayfaya dön</a>');
+    if (seq !== renderSeq) return;
+    app.innerHTML = shell(html);
+    setupNav();
+    if (view && view[2]) view[2](r);
+    if (flashMsg) { toast(flashMsg[0], flashMsg[1]); flashMsg = null; }
+  } catch (err) {
+    if (seq !== renderSeq) return;
+    if (!TOKEN) return render();
+    app.innerHTML = ME ? shell(card(null, `<p class="msg err">${esc(err.message)}</p><p class="mt"><a class="link" href="#/">Ana sayfaya dön</a></p>`)) : `<div class="loading"><p class="msg err">${esc(err.message)}</p></div>`;
+    if (ME) setupNav();
+  }
+}
+
+// ---------------------------------------------------------------- olaylar: formlar ve düğmeler
+function formData(f) {
+  const o = {};
+  [...f.elements].forEach((el) => {
+    if (!el.name || el.disabled) return;
+    if (el.type === 'checkbox') { if (el.name.endsWith('[]')) { const k = el.name.slice(0, -2); o[k] = o[k] || []; if (el.checked) o[k].push(el.value); } else o[el.name] = el.checked ? 'on' : ''; return; }
+    if (el.type === 'radio') { if (el.checked) o[el.name] = el.value; return; }
+    o[el.name] = el.value;
+  });
+  // yoklama: s_<öğrenciId> → statuses
+  const st = {}; let has = false;
+  Object.keys(o).forEach((k) => { if (k.indexOf('s_') === 0) { st[k.slice(2)] = o[k]; delete o[k]; has = true; } });
+  if (has) o.statuses = st;
+  return o;
+}
+document.addEventListener('submit', async (e) => {
+  const f = e.target;
+  if (f.dataset.get !== undefined) { // filtre formu → adrese dönüştür
+    e.preventDefault();
+    const o = formData(f); go(f.dataset.get + qs(o)); return;
+  }
+  if (!f.dataset.api) return;
+  e.preventDefault();
+  if (f.dataset.confirm && !confirm(f.dataset.confirm)) return;
+  const msg = f.querySelector('.msg'), b = f.querySelector('[type=submit]');
+  const label = b ? b.innerHTML : '';
+  if (b) { b.disabled = true; b.innerHTML = 'Kaydediliyor…'; }
+  try {
+    const res = await call(f.dataset.api, formData(f));
+    if (f.dataset.api === 'auth.login' || f.dataset.api === 'auth.setup') { setToken(res.token); ME = res.user; go('/'); render(); return; }
+    if (f.dataset.go) { flashMsg = res && res.message ? [res.message] : null; go(f.dataset.go.replace(/\{(\w+)\}/g, (m, k) => (res && res[k]) || '')); return; }
+    if (f.dataset.reload !== undefined) { flashMsg = [(res && res.message) || 'Kaydedildi.']; render(); return; }
+    if (msg) { msg.className = 'msg ok'; msg.textContent = (res && res.message) || 'Kaydedildi.'; }
+    if (f.dataset.reset !== undefined) f.reset();
+  } catch (err) {
+    if (msg) { msg.className = 'msg err'; msg.textContent = err.message; } else toast(err.message, 'err');
+  } finally { if (b && document.body.contains(b)) { b.disabled = false; b.innerHTML = label; } }
+});
+document.addEventListener('click', async (e) => {
+  const lo = e.target.closest('[data-logout]');
+  if (lo) { try { await call('auth.logout'); } catch (x) {} setToken(null); ME = null; $('#scene').innerHTML = ''; go('/'); render(); return; }
+  const wa = e.target.closest('[data-walog]');
+  if (wa) { // WhatsApp yeni sekmede açılır; gönderim sunucuda kaydedilir
+    const args = JSON.parse(wa.dataset.walog);
+    call('reminders.log', args).then(() => { wa.textContent = 'Açıldı ✓'; wa.className = 'btn btn-s btn-sm'; setTimeout(render, 1500); }).catch((x) => toast(x.message, 'err'));
+    return;
+  }
+  const a = e.target.closest('[data-act]');
+  if (a) {
+    if (a.dataset.confirm && !confirm(a.dataset.confirm)) return;
+    a.disabled = true;
+    try {
+      const res = await call(a.dataset.act, JSON.parse(a.dataset.args || '{}'));
+      if (a.dataset.go) { go(a.dataset.go.replace(/\{(\w+)\}/g, (m, k) => (res && res[k]) || '')); return; }
+      flashMsg = [(res && res.message) || 'Tamam.']; render();
+    } catch (err) { toast(err.message, 'err'); a.disabled = false; }
+    return;
+  }
+  const pr = e.target.closest('[data-print]'); if (pr) { window.print(); return; }
+  const ta = e.target.closest('[data-toggleall]');
+  if (ta) { ta.form.querySelectorAll('input[name="keys[]"]:not(:disabled)').forEach((c) => (c.checked = ta.checked)); }
+});
+
+// ================================================================ SAYFALAR
+// ---------------------------------------------------------------- giriş / kurulum
+function viewLogin() {
+  return `<div class="login">${loginScene()}<div class="box">
+    <div class="head a-rise"><img class="logo" src="${LOGO}" alt="Kapaklı Tenis Akademi logosu"><h1 style="margin-top:16px;font-size:24px">Kapaklı Tenis Akademi</h1><p class="muted" style="margin:4px 0 0">Yönetim paneline giriş</p></div>
+    <div class="card a-rise2"><div class="card-b" style="padding:24px">${form('auth.login', `<div class="stack">${field('E-posta', inp('email', '', { type: 'email', req: true, extra: 'autocomplete="email"' }))}${field('Şifre', inp('password', '', { type: 'password', req: true, extra: 'autocomplete="current-password"' }))}${submit('Giriş yap', 'btn-p btn-w')}</div>`)}</div></div>
+    <p class="small a-rise2" style="text-align:center;margin-top:16px;color:rgba(255,255,255,.8)">Hesabınız yoksa akademi yönetimiyle iletişime geçin.</p></div></div>`;
+}
+function viewSetup() {
+  return `<div class="login">${loginScene()}<div class="box">
+    <div class="head a-rise"><img class="logo" src="${LOGO}" alt=""><h1 style="margin-top:16px;font-size:24px">Hoş geldiniz 🎾</h1><p class="muted" style="margin:6px 0 0">Kapaklı Tenis Akademi sistemi ilk kez açılıyor. Yönetici hesabınızı oluşturun.</p></div>
+    <div class="card a-rise2"><div class="card-b" style="padding:24px">${form('auth.setup', `<div class="stack">${field('Ad soyad', inp('name', '', { req: true }))}${field('E-posta', inp('email', '', { type: 'email', req: true }))}${field('Şifre (en az 8 karakter)', inp('password', '', { type: 'password', req: true, extra: 'minlength="8" autocomplete="new-password"' }))}${field('Şifre (tekrar)', inp('password2', '', { type: 'password', req: true, extra: 'minlength="8" autocomplete="new-password"' }))}${submit('Yönetici hesabını oluştur', 'btn-p btn-w')}</div>`)}</div></div>
+    <p class="small" style="text-align:center;margin-top:16px;color:rgba(255,255,255,.8)">Bu sayfa sadece bir kez, hiç kullanıcı yokken açılır.</p></div></div>`;
+}
+
+// ---------------------------------------------------------------- program listesi (bugün vb.)
+function scheduleList(items, date, showAtt) {
+  if (!items.length) return empty('Bu gün için ders veya rezervasyon yok.');
+  return items.map((i) => {
+    const b = i.kind === 'GROUP' ? badge('green', 'Grup') : i.resStatus === 'BEKLEMEDE' ? badge('amber', 'Onay bekliyor') : i.resType === 'OZEL_DERS' ? badge('clay', 'Özel ders') : badge('blue', 'Kiralama');
+    const meta = [i.court, i.coach, i.memberCount !== undefined ? i.memberCount + ' öğrenci' : null].filter(Boolean).join(' · ');
+    return `<div class="list-row"><div class="mono small" style="width:96px">${i.start}–${i.end}</div><div class="grow"><div class="b">${esc(i.title)}</div><div class="small muted">${esc(meta)}</div></div>${b}
+      ${showAtt && i.groupId ? `<a class="btn ${i.lessonTaken ? 'btn-s' : 'btn-p'} btn-sm" href="#/yoklama/${i.groupId}?tarih=${date}">${i.lessonTaken ? 'Yoklama ✓' : 'Yoklama al'}</a>` : ''}</div>`;
+  }).join('');
+}
+
+// ---------------------------------------------------------------- panolar
+async function viewHome() {
+  const d = await call('dashboard');
+  if (d.role === 'ADMIN') {
+    const lateSum = d.overdue.reduce((s, p) => s + p.due, 0);
+    return ph('Genel bakış', esc(d.todayLabel)) + `<div class="grid g4 mb">
+      ${stat({ accent: 'blue', icon: 'users', label: 'Aktif öğrenci', value: d.activeStudents, href: '/ogrenciler' })}
+      ${stat({ accent: 'purple', icon: 'layers', label: 'Aktif grup', value: d.activeGroups, href: '/gruplar' })}
+      ${stat({ accent: 'gold', icon: 'wallet', label: d.periodLabel + ' tahsilat', value: tl(d.collected), hint: 'Beklenen ' + tl(d.expected), progress: d.expected ? d.collected / d.expected : 0, href: '/aidatlar' })}
+      ${stat({ accent: 'red', icon: 'alert', label: 'Geciken aidat', value: d.overdue.length, hint: d.overdue.length ? tl(lateSum) : 'Her şey yolunda ✓', href: '/aidatlar?durum=GECIKTI' })}</div>
+      <div id="pending"></div>
+      <div class="grid g5" style="align-items:start">
+        ${card('Bugünün programı', scheduleList(d.schedule, d.today, true), { cls: 'span3', act: '<a class="link small" href="#/program">Haftalık</a>' })}
+        <div class="stack span2" style="grid-column:span 2">
+        ${card(`Onay bekleyen talepler (${d.pending.length})`, d.pending.length ? d.pending.map((r) => `<div class="list-row" style="display:block"><div class="b">${RES_TYPE[r.type]} · ${esc(r.court)}</div>
+          <div class="small muted">${esc(r.dateLabel)} ${r.start}–${r.end} · ${esc(r.user)}${r.student ? ` (${esc(r.student)})` : ''}</div>${r.note ? `<div class="small muted"><i>“${esc(r.note)}”</i></div>` : ''}
+          <div class="row mt-s">${act('reservations.approve', { id: r.id }, 'Onayla', 'btn-p btn-sm')}${act('reservations.cancel', { id: r.id }, 'Reddet', 'btn-d btn-sm', 'Talep reddedilsin mi?')}</div></div>`).join('') : empty('Bekleyen talep yok.'))}
+        ${card('Geciken aidatlar', d.overdue.length ? d.overdue.slice(0, 8).map((p) => `<div class="list-row between"><a class="link" href="#/ogrenciler/${p.studentId}">${esc(p.student)}</a><span class="row"><span class="small muted">${esc(p.periodLabel)}</span>${badge('red', tl(p.due))}</span></div>`).join('') : empty('Geciken ödeme yok. 🎾'), { act: '<a class="link small" href="#/aidatlar?durum=GECIKTI">Tümü</a>' })}
+        </div></div>`;
+  }
+  if (d.role === 'COACH') {
+    return ph('Merhaba ' + ME.name.split(' ')[0], esc(d.todayLabel)) + `<div class="grid g3 mb">
+      ${stat({ accent: 'green', icon: 'calendar', label: 'Bugünkü ders', value: d.todayItems.length })}
+      ${stat({ accent: 'red', icon: 'check', label: 'Yoklama bekleyen', value: d.missing, href: '/yoklama' })}
+      ${stat({ accent: 'blue', icon: 'users', label: 'Gruplarımdaki öğrenci', value: d.students })}</div>
+      <div class="grid g2 lay" style="align-items:start">${card('Bugün', scheduleList(d.todayItems, d.today, true))}${card('Yarın', scheduleList(d.tomorrowItems, d.tomorrow))}</div>
+      <div class="mt">${card('Gruplarım', table([['Grup'], ['Gün / saat'], ['Seviye'], ['Kort'], ['Öğrenci']], d.groups.map((g) => [`<span class="b">${esc(g.name)}</span>`, `${DAY[g.dayOfWeek]} ${g.startTime}–${g.endTime}`, LEVEL[g.level], esc(g.court || '—'), `${g.count}/${g.capacity}`]), { empty: 'Size atanmış grup yok.' }), { flush: true })}</div>`;
+  }
+  // VELİ
+  const kids = d.children.map((c) => {
+    const total = c.attendance.length, present = c.attendance.filter((a) => a.status === 'GELDI').length, age = ageFrom(c.birthDate);
+    return `<section class="card mb" style="overflow:hidden"><div class="card-h" style="background:rgba(190,242,100,.08)"><div><h2 style="font-size:18px">${esc(c.name)}</h2><div class="small muted">${age !== null ? age + ' yaş · ' : ''}${LEVEL[c.level]} seviye</div></div>
+      <div class="row">${total ? badge('green', `Son ${total} derste devam: %${Math.round(present / total * 100)}`) : ''}${c.lastTerm ? `<a class="btn btn-s btn-sm" href="#/karne/${c.id}">Gelişim karnesi · ${esc(c.lastTerm)}</a>` : ''}</div></div>
+      <div class="card-b grid g3">
+        <div><div class="xs b dim mb" style="margin-bottom:8px">HAFTALIK DERSLER</div>${c.groups.length ? c.groups.map((g) => `<div style="margin-bottom:8px"><div class="b">${DAY[g.dayOfWeek]} ${g.startTime}–${g.endTime}</div><div class="small muted">${esc(g.name)} · ${esc(g.court || 'Kort belirlenecek')} · ${esc(g.coach || 'Antrenör belirlenecek')}</div></div>`).join('') : '<p class="muted small">Henüz bir gruba kayıtlı değil.</p>'}</div>
+        <div><div class="xs b dim" style="margin-bottom:8px">SON YOKLAMALAR</div>${total ? c.attendance.map((a) => `<div class="row between" style="margin-bottom:4px"><span>${esc(a.dateLabel)}</span>${badge(ATT_T[a.status], ATT[a.status])}</div>`).join('') : '<p class="muted small">Kayıt yok.</p>'}</div>
+        <div><div class="xs b dim" style="margin-bottom:8px">AİDATLAR</div>${c.payments.length ? c.payments.map((p) => `<div class="row between" style="margin-bottom:4px"><span>${esc(p.periodLabel)} <span class="small muted">${tl(p.amount)}</span></span>${badge(PAY_T[p.status], PAY_ST[p.status])}</div>`).join('') : '<p class="muted small">Kayıt yok.</p>'}</div>
+      </div></section>`;
+  }).join('');
+  return ph('Hoş geldiniz, ' + ME.name.split(' ')[0], esc(d.todayLabel), btn('/kortlar', 'Kort / özel ders talebi', 'btn-p'))
+    + (d.children.length ? kids : card(null, empty('Hesabınıza bağlı öğrenci bulunmuyor. Akademi yönetimiyle iletişime geçin.')))
+    + card('Yaklaşan rezervasyonlar', d.reservations.length ? d.reservations.map((r) => `<div class="list-row"><div class="grow"><div class="b">${esc(r.dateLabel)} · ${r.start}–${r.end}</div>
+      <div class="small muted">${RES_TYPE[r.type]} · ${esc(r.court)}${r.student ? ' · ' + esc(r.student) : ''}${r.coach ? ' · ' + esc(r.coach) : ''}</div></div>${badge(r.status === 'ONAYLI' ? 'green' : 'amber', RES_ST[r.status])}
+      ${r.mine ? act('reservations.cancel', { id: r.id }, 'İptal', 'btn-d btn-sm', 'Rezervasyon iptal edilsin mi?') : ''}</div>`).join('') : empty('Yaklaşan rezervasyon yok.'));
+}
+function afterHome() {
+  if (ME.role !== 'ADMIN') return;
+  call('dashboard.pending').then((n) => {
+    const el = $('#pending'); if (!el || !(n.dues + n.lessons)) return;
+    el.innerHTML = `<div class="row between mb" style="border:1px solid rgba(190,242,100,.3);background:rgba(190,242,100,.15);color:#ecfccb;border-radius:14px;padding:12px 16px">
+      <span><b>Bekleyen WhatsApp hatırlatmaları:</b> ${[n.dues ? n.dues + ' aidat' : '', n.lessons ? n.lessons + ' yarınki ders' : ''].filter(Boolean).join(' · ')}</span>
+      <span class="row">${n.dues ? btn('/bildirimler?sekme=aidat', 'Aidat hatırlat', 'btn-p btn-sm') : ''}${n.lessons ? btn('/bildirimler?sekme=ders', 'Ders hatırlat', 'btn-s btn-sm') : ''}</span></div>`;
+  }).catch(() => {});
+}
+
+// ---------------------------------------------------------------- öğrenciler
+async function viewStudents(r) {
+  const q = r.q, list = await call('students.list', { q: q.q, level: q.seviye, status: q.durum || 'aktif' });
+  return ph('Öğrenciler', list.length + ' kayıt', btn('/ogrenciler/yeni', '+ Yeni öğrenci', 'btn-p'))
+    + `<form data-get="/ogrenciler" class="row mb"><input class="input" style="max-width:280px" name="q" value="${esc(q.q)}" placeholder="Ad, soyad veya veli ara…">
+      ${sel('seviye', [['', 'Tüm seviyeler']].concat(LEVELS.map((l) => [l, LEVEL[l]])), q.seviye, 'style="width:auto"')}${sel('durum', [['aktif', 'Aktif'], ['pasif', 'Pasif'], ['tum', 'Tümü']], q.durum || 'aktif', 'style="width:auto"')}${submit('Filtrele', 'btn-s')}</form>`
+    + card(null, table([['Öğrenci'], ['Yaş'], ['Seviye'], ['Gruplar'], ['Veli'], ['Aidat', 'right']], list.map((s) => [
+      `<a class="link" href="#/ogrenciler/${s.id}">${esc(s.name)}</a>${s.active ? '' : ' ' + badge('gray', 'Pasif')}`, ageFrom(s.birthDate) ?? '—', LEVEL[s.level],
+      `<span class="small muted">${esc(s.groups.join(', ') || '—')}</span>`, s.parent ? `<span class="small">${esc(s.parent)}<div class="muted">${esc(s.parentPhone || '')}</div></span>` : '—',
+      s.monthlyFee ? tl(s.monthlyFee) : '—']), { empty: 'Öğrenci bulunamadı.' }), { flush: true });
+}
+function studentFields(s, parents, showActive) {
+  s = s || {};
+  return `<div class="grid g2">${field('Ad *', inp('firstName', s.firstName, { req: true }))}${field('Soyad *', inp('lastName', s.lastName, { req: true }))}
+    ${field('Doğum tarihi', inp('birthDate', s.birthDate, { type: 'date' }))}${field('Telefon (öğrenci)', inp('phone', s.phone, { type: 'tel' }))}
+    ${field('Seviye', sel('level', LEVELS.map((l) => [l, LEVEL[l]]), s.level || 'BASLANGIC'))}${field('Aylık aidat (TL)', inp('monthlyFee', s.monthlyFee || 0, { type: 'number', extra: 'min="0" step="50"' }))}
+    ${field('Veli', sel('parentId', [['', '— Veli seçilmedi —']].concat(parents.map((p) => [p.id, p.name + (p.phone ? ' · ' + p.phone : '')])), s.parentId) + '<span class="xs muted" style="display:block;margin-top:4px">Listede yoksa önce Kullanıcılar sayfasından veli hesabı oluşturun.</span>', 'span2')}
+    ${field('Notlar (sağlık, hedefler vb.)', `<textarea class="input" name="notes" rows="3">${esc(s.notes)}</textarea>`, 'span2')}
+    ${showActive ? `<div class="span2">${chk('active', s.active, 'Aktif öğrenci')}</div>` : ''}</div>`;
+}
+async function viewStudentNew() {
+  const d = await call('students.form');
+  return ph('Yeni öğrenci', null, btn('/ogrenciler', 'Vazgeç')) + `<div style="max-width:760px">${card(null, form('students.save', studentFields(null, d.parents) + `<div class="mt">${submit('Öğrenciyi kaydet')}</div>`, { go: '/ogrenciler/{id}' }))}</div>`;
+}
+async function viewStudent(r) {
+  const d = await call('students.get', { id: r.parts[1] }), s = d.student;
+  const present = d.attendance.filter((a) => a.status === 'GELDI').length, debt = d.payments.reduce((t, p) => t + p.amount - p.paidAmount, 0), age = ageFrom(s.birthDate);
+  return ph(s.firstName + ' ' + s.lastName, (age !== null ? age + ' yaş · ' : '') + (d.parent ? 'Veli: ' + esc(d.parent.name) + (d.parent.phone ? ' (' + esc(d.parent.phone) + ')' : '') : 'Veli tanımlı değil'), btn('/ogrenciler', '← Öğrenciler'))
+    + `<div class="grid g4 mb">${stat({ accent: 'purple', icon: 'layers', label: 'Grup sayısı', value: d.groups.length, hint: d.groups.map((g) => DAY[g.dayOfWeek] + ' ' + g.startTime).join(', ') })}
+      ${stat({ accent: 'green', icon: 'check', label: 'Devam (son 30 ders)', value: d.attendance.length ? '%' + Math.round(present / d.attendance.length * 100) : '—', hint: present + '/' + d.attendance.length + ' ders' })}
+      ${stat({ accent: 'gold', icon: 'wallet', label: 'Aylık aidat', value: tl(s.monthlyFee) })}${stat({ accent: 'red', icon: 'alert', label: 'Açık bakiye', value: tl(debt) })}</div>
+    <div class="grid g2 lay" style="align-items:start">${card('Bilgiler', form('students.save', studentFields(s, d.parents, true) + `<div class="mt">${submit('Kaydet')}</div>`, { hidden: { id: s.id } }))}
+      <div class="stack">${card('Gruplar', d.groups.length ? d.groups.map((g) => `<div class="list-row between"><a class="link" href="#/gruplar/${g.id}">${esc(g.name)}</a><span class="small muted">${DAY[g.dayOfWeek]} ${g.startTime}–${g.endTime} · ${esc(g.coach || '—')}</span></div>`).join('') : empty('Gruba kayıtlı değil. <a class="link" href="#/gruplar">Gruplar</a> sayfasından ekleyin.'))}
+      ${card('Aidat geçmişi', table([['Dönem'], ['Tutar'], ['Ödenen'], ['Durum']], d.payments.map((p) => [esc(p.periodLabel), tl(p.amount), `${tl(p.paidAmount)}${p.paidAtLabel ? `<div class="xs muted">${esc(p.paidAtLabel)} · ${PAY_M[p.method] || ''}</div>` : ''}`, badge(PAY_T[p.status], PAY_ST[p.status])])), { flush: true })}
+      ${card('Yoklama geçmişi', d.attendance.length ? d.attendance.map((a) => `<div class="row between" style="margin-bottom:4px"><span>${esc(a.dateLabel)} <span class="small muted">· ${esc(a.group)}</span></span>${badge(ATT_T[a.status], ATT[a.status])}</div>`).join('') : empty('Kayıt yok.'))}</div></div>`;
+}
+
+// ---------------------------------------------------------------- kullanıcılar
+async function viewUsers(r) {
+  const role = r.q.rol || '', list = await call('users.list', { role });
+  const tone = { ADMIN: 'clay', COACH: 'green', PARENT: 'blue' };
+  return ph('Kullanıcılar', 'Yönetici, antrenör ve veli hesapları', btn('/kullanicilar/yeni', '+ Yeni kullanıcı', 'btn-p'))
+    + `<div class="row mb">${[['', 'Tümü']].concat(Object.entries(ROLE)).map(([k, v]) => btn('/kullanicilar' + qs({ rol: k }), v, role === k ? 'btn-p btn-sm' : 'btn-s btn-sm')).join('')}</div>`
+    + card(null, table([['Ad'], ['Rol'], ['E-posta'], ['Telefon'], ['Bağlantılar']], list.map((u) => Object.assign([
+      `<a class="link" href="#/kullanicilar/${u.id}">${esc(u.name)}</a>${u.active ? '' : ' ' + badge('gray', 'Pasif')}`, badge(tone[u.role], ROLE[u.role]), `<span class="small">${esc(u.email)}</span>`, `<span class="small">${esc(u.phone || '—')}</span>`,
+      `<span class="small muted">${u.role === 'PARENT' ? esc(u.children.join(', ') || 'Öğrenci bağlı değil') : u.role === 'COACH' ? u.groupCount + ' grup' : ''}</span>`]))), { flush: true });
+}
+function userFields(u, isNew) {
+  u = u || {};
+  return `<div class="grid g2">${field('Ad soyad *', inp('name', u.name, { req: true }))}${field('Rol', sel('role', Object.entries(ROLE), u.role || 'PARENT'))}
+    ${field('E-posta (giriş için) *', inp('email', u.email, { type: 'email', req: true }))}${field('Telefon', inp('phone', u.phone, { type: 'tel' }))}
+    ${field(isNew ? 'Şifre * (en az 8 karakter)' : 'Yeni şifre (değiştirmek için doldurun)', inp('password', '', { extra: `minlength="8" autocomplete="off" ${isNew ? 'required' : ''}` }))}
+    ${isNew ? '<div></div>' : `<div style="align-self:end;padding-bottom:8px">${chk('active', u.active, 'Hesap aktif')}</div>`}
+    <fieldset class="span2" style="border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:12px"><legend class="xs b dim" style="padding:0 4px">WhatsApp bildirimleri (veliler için)</legend>
+      ${chk('notifyConsent', isNew ? true : u.notifyConsent, "Aidat/ders hatırlatmalarını WhatsApp'tan almayı kabul ediyor")}<p class="xs muted" style="margin:6px 0 0">Mesajlar yukarıdaki telefon numarasının WhatsApp hesabına gider.</p></fieldset>
+    ${field('Saatlik ders ücreti (antrenörler için, TL)', inp('hourlyRate', u.hourlyRate || 0, { type: 'number', extra: 'min="0" step="50"' }))}</div>`;
+}
+async function viewUserNew() {
+  return ph('Yeni kullanıcı', 'Veli hesabı oluşturduktan sonra öğrenci kaydında veliyi seçebilirsiniz.', btn('/kullanicilar', 'Vazgeç'))
+    + `<div style="max-width:760px">${card(null, form('users.save', userFields(null, true) + `<div class="mt">${submit('Kullanıcıyı oluştur')}</div>`, { go: '/kullanicilar' }))}</div>`;
+}
+async function viewUser(r) {
+  const d = await call('users.get', { id: r.parts[1] }), u = d.user;
+  const side = u.role === 'PARENT' ? card('Bağlı öğrenciler', d.children.length ? d.children.map((c) => `<div><a class="link" href="#/ogrenciler/${c.id}">${esc(c.name)}</a></div>`).join('') : '<p class="small muted">Yok. Öğrenci kaydında bu veliyi seçin.</p>')
+    : u.role === 'COACH' ? card('Grupları', d.groups.length ? d.groups.map((g) => `<div><a class="link" href="#/gruplar/${g.id}">${esc(g.name)}</a> <span class="small muted">${DAY[g.dayOfWeek]} ${g.startTime}</span></div>`).join('') : '<p class="small muted">Atanmış grup yok.</p>') : '';
+  return ph(u.name, null, btn('/kullanicilar', '← Kullanıcılar')) + `<div class="grid g3" style="align-items:start">${card('Hesap bilgileri', form('users.save', userFields(u) + `<div class="mt">${submit('Kaydet')}</div>`, { hidden: { id: u.id } }), { cls: 'span2' })}${side}</div>`;
+}
+
+// ---------------------------------------------------------------- gruplar
+async function viewGroups() {
+  const list = await call('groups.list');
+  return ph('Gruplar', 'Haftalık tekrar eden grup dersleri', btn('/gruplar/yeni', '+ Yeni grup', 'btn-p'))
+    + card(null, table([['Grup'], ['Gün / saat'], ['Seviye'], ['Antrenör'], ['Kort'], ['Doluluk']], list.map((g) => Object.assign([
+      `<a class="link" href="#/gruplar/${g.id}">${esc(g.name)}</a>${g.active ? '' : ' ' + badge('gray', 'Pasif')}`, `${DAY[g.dayOfWeek]} ${g.startTime}–${g.endTime}`, LEVEL[g.level],
+      esc(g.coach || '—'), esc(g.court || '—'), badge(g.count >= g.capacity ? 'clay' : 'green', g.count + '/' + g.capacity)], { cls: g.active ? '' : 'dimrow' })), { empty: 'Henüz grup yok.' }), { flush: true });
+}
+function groupFields(g, d, showActive) {
+  g = g || {};
+  return `<div class="grid g2">${field('Grup adı *', inp('name', g.name, { req: true, ph: 'ör. Minikler Salı' }), 'span2')}
+    ${field('Gün', sel('dayOfWeek', Object.entries(DAY), g.dayOfWeek || 1))}${field('Seviye', sel('level', LEVELS.map((l) => [l, LEVEL[l]]), g.level || 'BASLANGIC'))}
+    ${field('Başlangıç', inp('startTime', g.startTime || '17:00', { type: 'time', req: true }))}${field('Bitiş', inp('endTime', g.endTime || '18:00', { type: 'time', req: true }))}
+    ${field('Antrenör', sel('coachId', [['', '— Seçilmedi —']].concat(d.coaches.map((c) => [c.id, c.name])), g.coachId))}${field('Kort', sel('courtId', [['', '— Seçilmedi —']].concat(d.courts.map((c) => [c.id, c.name])), g.courtId))}
+    ${field('Kontenjan', inp('capacity', g.capacity || 6, { type: 'number', extra: 'min="1" max="30"' }))}${showActive ? `<div style="align-self:end;padding-bottom:8px">${chk('active', g.active, 'Aktif grup')}</div>` : ''}</div>`;
+}
+async function viewGroupNew() {
+  const d = await call('groups.form');
+  return ph('Yeni grup', null, btn('/gruplar', 'Vazgeç')) + `<div style="max-width:700px">${card(null, form('groups.save', groupFields(null, d) + `<div class="mt">${submit('Grubu oluştur')}</div>`, { go: '/gruplar/{id}' }))}</div>`;
+}
+async function viewGroup(r) {
+  const d = await call('groups.get', { id: r.parts[1] }), g = d.group;
+  const members = d.members.length ? d.members.map((s) => `<div class="list-row between"><span><a class="link" href="#/ogrenciler/${s.id}">${esc(s.name)}</a> <span class="small muted">${ageFrom(s.birthDate) ?? '?'} yaş · ${LEVEL[s.level]}</span>${s.active ? '' : ' ' + badge('gray', 'Pasif · sayılmıyor')}</span>
+    ${act('groups.removeMember', { groupId: g.id, studentId: s.id }, 'Çıkar', 'btn-d btn-sm', s.name + ' gruptan çıkarılsın mı?')}</div>`).join('') : empty('Grupta öğrenci yok.');
+  const add = d.activeCount < g.capacity ? form('groups.addMember', `<div class="row" style="flex-wrap:nowrap">${sel('studentId', [['', 'Öğrenci seçin…']].concat(d.candidates.map((s) => [s.id, s.name + ' · ' + LEVEL[s.level] + (s.level === g.level ? ' ✓' : '')])), '')}${submit('Ekle')}</div>`, { hidden: { groupId: g.id }, reload: true, cls: 'mt' }) : '';
+  return ph(g.name, `${DAY[g.dayOfWeek]} ${g.startTime}–${g.endTime} · ${LEVEL[g.level]}`, btn('/gruplar', '← Gruplar'))
+    + `<div class="grid g2 lay" style="align-items:start"><div class="stack">${card(`Öğrenciler (${d.activeCount}/${g.capacity})`, members + add)}
+      ${card('Son dersler', d.lessons.length ? d.lessons.map((l) => `<div class="list-row between"><a class="link" href="#/yoklama/${g.id}?tarih=${l.date}">${esc(l.dateLabel)}</a><span class="small muted">${l.present}/${l.total} geldi</span></div>`).join('') : empty('Henüz yoklama alınmadı.'))}</div>
+      ${card('Grup ayarları', form('groups.save', groupFields(g, d, true) + `<div class="mt">${submit('Kaydet')}</div>`, { hidden: { id: g.id }, reload: true }))}</div>`;
+}
+
+// ---------------------------------------------------------------- haftalık program
+async function viewProgram(r) {
+  const d = await call('schedule.week', { week: r.q.hafta, all: r.q.tum === '1' });
+  const link = (w) => '/program' + qs({ hafta: w, tum: r.q.tum });
+  const days = d.days.map((x, i) => `<div class="card day ${x.date === d.today ? 'today' : ''}"><div class="card-h" style="display:block"><div class="b">${DAY[i + 1]}</div><div class="xs muted">${esc(x.label)}</div></div>
+    <div class="card-b" style="padding:8px">${x.items.length ? x.items.map((it) => {
+      const c = it.kind === 'GROUP' ? 'ev-g' : it.resStatus === 'BEKLEMEDE' ? 'ev-w' : it.resType === 'OZEL_DERS' ? 'ev-p' : 'ev-k';
+      const inner = `<div class="mono b">${it.start}–${it.end}</div><div class="b">${esc(it.title)}</div><div class="muted">${esc([it.court, it.coach].filter(Boolean).join(' · '))}</div>`;
+      return ME.role !== 'PARENT' && it.groupId ? `<a class="ev ${c}" href="#/yoklama/${it.groupId}?tarih=${x.date}">${inner}</a>` : `<div class="ev ${c}">${inner}</div>`;
+    }).join('') : '<div class="xs dim" style="text-align:center;padding:10px">—</div>'}</div></div>`).join('');
+  return ph(ME.role === 'PARENT' ? 'Ders programı' : 'Haftalık program', esc(d.label), (ME.role === 'COACH' ? btn('/program' + qs({ hafta: d.week, tum: d.onlyMine ? '1' : '' }), d.onlyMine ? 'Tüm akademi' : 'Sadece benim derslerim') : '')
+    + btn(link(d.prev), '← Önceki') + btn(link(d.thisWeek), 'Bu hafta') + btn(link(d.next), 'Sonraki →'))
+    + `<div class="grid g7">${days}</div><div class="legend"><span><i style="background:#bef264"></i>Grup dersi</span><span><i style="background:#fb923c"></i>Özel ders</span><span><i style="background:#38bdf8"></i>Kort kiralama</span><span><i style="background:#fbbf24"></i>Onay bekliyor</span></div>`;
+}
+
+// ---------------------------------------------------------------- yoklama
+async function viewAttendanceDay(r) {
+  const d = await call('attendance.day', { date: r.q.tarih });
+  return ph('Yoklama', esc(d.dateLabel), btn('/yoklama' + qs({ tarih: d.prev }), '← Önceki gün') + (d.date !== d.today ? btn('/yoklama', 'Bugün') : '') + (d.date < d.today ? btn('/yoklama' + qs({ tarih: d.next }), 'Sonraki gün →') : ''))
+    + card('Grup dersleri', scheduleList(d.items, d.date, d.date <= d.today));
+}
+async function viewAttendance(r) {
+  const d = await call('attendance.get', { groupId: r.parts[1], date: r.q.tarih }), g = d.group;
+  const rows = d.members.map((s) => `<div class="list-row between"><span class="b">${esc(s.name)}</span><div class="seg">${['GELDI', 'GELMEDI', 'IZINLI'].map((st) => `<label><input type="radio" class="${st === 'GELMEDI' ? 'no' : st === 'IZINLI' ? 'ex' : ''}" name="s_${s.id}" value="${st}" ${s.status === st ? 'checked' : ''}><span>${ATT[st]}</span></label>`).join('')}</div></div>`).join('');
+  return ph('Yoklama · ' + g.name, `${esc(d.dateLabel)} · ${g.startTime}–${g.endTime} · ${esc(g.court || 'Kort yok')} · ${esc(g.coach || 'Antrenör yok')}`,
+    btn(`/yoklama/${g.id}?tarih=${d.prevDate}`, '← Önceki ders') + (d.nextDate ? btn(`/yoklama/${g.id}?tarih=${d.nextDate}`, 'Sonraki ders →') : ''))
+    + (d.requested !== d.date ? `<p class="msg ok mb" style="background:rgba(251,191,36,.15);color:#fde68a">Bu grubun dersi ${DAY[g.dayOfWeek]} günleri; en yakın geçmiş ders (${esc(d.dateLabel)}) gösteriliyor.</p>` : '')
+    + `<div style="max-width:720px">${card(d.taken ? 'Kaydedildi' + (d.takenBy ? ' · ' + esc(d.takenBy) : '') : 'Yoklama alınmadı',
+      d.members.length ? form('attendance.save', rows + `<label class="field mt"><span class="label">Ders notu (işlenen konu, gözlemler)</span><textarea class="input" name="note" rows="2">${esc(d.note)}</textarea></label><div class="mt">${submit('Yoklamayı kaydet')}</div>`, { hidden: { groupId: g.id, date: d.date }, reload: true }) : empty('Grupta öğrenci yok.'))}</div>`;
+}
+
+// ---------------------------------------------------------------- kortlar
+async function viewCourts(r) {
+  const d = await call('courts.day', { date: r.q.tarih });
+  const hrs = []; for (let h = +d.openFrom.slice(0, 2); h < +d.openUntil.slice(0, 2); h++) hrs.push(String(h).padStart(2, '0'));
+  const ov = (a1, a2, b1, b2) => a1 < b2 && b1 < a2;
+  const cell = (cid, h) => {
+    const s = h + ':00', e = String(+h + 1).padStart(2, '0') + ':00';
+    const g = d.groups.find((x) => x.courtId === cid && ov(x.start, x.end, s, e));
+    if (g) return `<div class="cell c-g">${esc(g.name)}</div>`;
+    const x = d.reservations.find((y) => y.courtId === cid && ov(y.start, y.end, s, e));
+    if (x) return `<div class="cell ${x.status === 'BEKLEMEDE' ? 'c-w' : x.type === 'OZEL_DERS' ? 'c-p' : 'c-k'}">${x.hidden ? 'Dolu' : esc(x.type === 'OZEL_DERS' ? 'Özel · ' + (x.coach || '') : x.user)}<br><span style="opacity:.75">${x.start}–${x.end}</span></div>`;
+    return '<div class="cell c-free">Boş</div>';
+  };
+  const grid = d.courts.length ? `<div class="tw" style="padding:10px"><table class="cgrid"><thead><tr><th style="width:52px"></th>${d.courts.map((c) => `<th style="text-align:left" class="small">${esc(c.name)}<div class="xs dim" style="font-weight:400">${SURFACE[c.surface]}${c.indoor ? ' · Kapalı' : ''}</div></th>`).join('')}</tr></thead>
+    <tbody>${hrs.map((h) => `<tr><td class="mono xs dim" style="text-align:right;vertical-align:top">${h}:00</td>${d.courts.map((c) => `<td style="vertical-align:top">${cell(c.id, h)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>` : empty('Aktif kort yok.');
+  const isP = ME.role === 'PARENT', isA = ME.role === 'ADMIN';
+  const resForm = form('reservations.create', `<div class="stack">${field('Kort', sel('courtId', d.courts.map((c) => [c.id, c.name]), ''))}
+      <div class="grid g2">${field('Başlangıç', inp('startTime', '18:00', { type: 'time', req: true, extra: `step="1800" min="${d.openFrom}" max="${d.openUntil}"` }))}${field('Bitiş', inp('endTime', '19:00', { type: 'time', req: true, extra: `step="1800" min="${d.openFrom}" max="${d.openUntil}"` }))}</div>
+      ${ME.role !== 'COACH' ? field('Tür', sel('type', [['KIRALAMA', 'Kort kiralama'], ['OZEL_DERS', 'Özel ders']], 'KIRALAMA')) + field(isP ? 'Antrenör tercihi (özel ders için)' : 'Antrenör (özel ders için)', sel('coachId', [['', '—']].concat(d.coaches.map((c) => [c.id, c.name])), '')) : ''}
+      ${d.kids.length ? field('Öğrenci', sel('studentId', [['', '—']].concat(d.kids.map((k) => [k.id, k.name])), '')) : ''}
+      ${field('Not', inp('note', '', { ph: isP ? 'ör. 2 kişi oynayacağız' : '' }))}${submit(isP ? 'Talep gönder' : 'Rezervasyon yap')}
+      ${isP ? '<p class="xs muted" style="margin:0">Talepler akademi onayından sonra kesinleşir.</p>' : ''}</div>`, { hidden: { date: d.date }, reload: true });
+  const mine = isP ? d.reservations.filter((x) => !x.hidden) : d.reservations;
+  const resList = mine.length ? mine.map((x) => `<div class="list-row" style="display:block"><div class="row between"><span class="b">${x.start}–${x.end} · ${esc((d.courts.find((c) => c.id === x.courtId) || {}).name || '')}</span>${badge(x.status === 'ONAYLI' ? 'green' : 'amber', RES_ST[x.status])}</div>
+    <div class="small muted">${RES_TYPE[x.type]} · ${esc(x.user)}${x.coach ? ' · Antrenör: ' + esc(x.coach) : ''}${x.student ? ' · ' + esc(x.student) : ''}</div>${x.note ? `<div class="small muted"><i>“${esc(x.note)}”</i></div>` : ''}
+    <div class="row mt-s">${isA && x.status === 'BEKLEMEDE' ? act('reservations.approve', { id: x.id }, 'Onayla', 'btn-p btn-sm') : ''}${x.canCancel ? act('reservations.cancel', { id: x.id }, 'İptal et', 'btn-d btn-sm', 'Rezervasyon iptal edilsin mi?') : ''}</div></div>`).join('') : empty('Rezervasyon yok.');
+  const courtsAdmin = isA ? card('Kortlar', d.allCourts.map((c) => `<div class="list-row between"><span style="${c.active ? '' : 'opacity:.5;text-decoration:line-through'}">${esc(c.name)} <span class="small muted">· ${SURFACE[c.surface]}${c.indoor ? ' · Kapalı' : ''}</span></span>${act('courts.toggle', { id: c.id }, c.active ? 'Kapat' : 'Aç')}</div>`).join('')
+    + form('courts.create', `<div class="row" style="flex-wrap:nowrap">${inp('name', '', { req: true, ph: 'Kort adı' })}${sel('surface', Object.entries(SURFACE), 'TOPRAK', 'style="width:auto"')}</div><div class="row between mt-s">${chk('indoor', false, 'Kapalı kort')}${submit('Kort ekle', 'btn-s btn-sm')}</div>`, { reload: true, cls: 'mt' })) : '';
+  return ph('Kort rezervasyonu', esc(d.dateLabel), `<form data-get="/kortlar" class="row">${btn('/kortlar' + qs({ tarih: d.prev }), '←')}<input class="input" type="date" name="tarih" value="${d.date}" style="width:auto">${submit('Git', 'btn-s')}${btn('/kortlar' + qs({ tarih: d.next }), '→')}</form>`)
+    + `<div class="grid g3" style="align-items:start">${card('Doluluk', grid, { cls: 'span2', flush: true })}<div class="stack">${card(isP ? 'Rezervasyon talebi' : 'Yeni rezervasyon', resForm)}${card(isP ? 'Bu günkü rezervasyonlarım' : 'Günün rezervasyonları', resList)}${courtsAdmin}</div></div>`;
+}
+
+// ---------------------------------------------------------------- aidatlar
+async function viewPayments(r) {
+  const d = await call('payments.list', { period: r.q.donem, status: r.q.durum });
+  const sl = (s) => '/aidatlar' + qs({ donem: d.period, durum: s });
+  const rows = d.rows.map((p) => {
+    const rem = p.amount - p.paidAmount;
+    const wa = rem > 0 ? (() => { const ph2 = p.parentPhone || p.studentPhone; const n = (ph2 || '').replace(/\D/g, '').replace(/^0090/, '').replace(/^90(?=\d{10}$)/, '').replace(/^0(?=\d{10}$)/, '');
+      return /^5\d{9}$/.test(n) ? `<a class="link xs" target="_blank" rel="noopener" href="https://wa.me/90${n}?text=${encodeURIComponent(`Sayın ${p.parent || p.student}, ${p.student} için ${p.periodLabel} aidatından ${tl(rem)} ödeme beklenmektedir. Kapaklı Tenis Akademi`)}">WhatsApp ile hatırlat ↗</a>` : ''; })() : '';
+    const coll = rem > 0 ? form('payments.record', `<div class="row" style="justify-content:flex-end"><input class="input" style="width:100px;padding:5px 10px" type="number" name="amount" min="1" max="${rem}" value="${rem}" aria-label="Tutar">${sel('method', Object.entries(PAY_M), 'NAKIT', 'style="width:auto;padding:5px 10px" aria-label="Yöntem"')}${submit('Tahsil et', 'btn-p btn-sm')}</div>`, { hidden: { id: p.id }, reload: true })
+      : act('payments.reset', { id: p.id }, 'Geri al', 'btn-s btn-sm', 'Tahsilat geri alınsın mı?');
+    return [`<a class="link" href="#/ogrenciler/${p.studentId}">${esc(p.student)}</a>${p.parent ? `<div class="xs muted">${esc(p.parent)}${p.parentPhone ? ' · ' + esc(p.parentPhone) : ''}</div>` : ''}${wa}`]
+      .concat(d.overdueMode ? [esc(p.periodLabel)] : []).concat([`<span class="small nowrap">${esc(p.dueLabel)}</span>`, tl(p.amount), `${tl(p.paidAmount)}${p.paidAtLabel ? `<div class="xs muted">${esc(p.paidAtLabel)} · ${PAY_M[p.method] || ''}</div>` : ''}`,
+        badge(PAY_T[p.status], PAY_ST[p.status]), coll + (p.paidAmount === 0 ? `<div style="margin-top:4px">${act('payments.remove', { id: p.id }, 'Kaydı sil', 'btn-d btn-sm', 'Bu aidat kaydı silinsin mi?')}</div>` : '')]);
+  });
+  const heads = [['Öğrenci']].concat(d.overdueMode ? [['Dönem']] : []).concat([['Son ödeme'], ['Tutar'], ['Ödenen'], ['Durum'], ['Tahsilat']]);
+  return ph('Aidatlar', d.overdueMode ? 'Tüm dönemlerdeki geciken ödemeler' : esc(d.periodLabel), btn('/aidatlar' + qs({ donem: d.prev }), '← ' + d.prevLabel) + btn('/aidatlar' + qs({ donem: d.next }), d.nextLabel + ' →'))
+    + `<div class="grid g4 mb">${stat({ accent: 'blue', icon: 'wallet', label: 'Beklenen', value: tl(d.expected), hint: d.total + ' kayıt' })}
+      ${stat({ accent: 'green', icon: 'trend', label: 'Tahsil edilen', value: tl(d.collected), hint: d.expected ? '%' + Math.round(d.collected / d.expected * 100) : '', progress: d.expected ? d.collected / d.expected : 0 })}
+      ${stat({ accent: 'gold', icon: 'clock', label: 'Kalan', value: tl(d.expected - d.collected) })}${stat({ accent: 'red', icon: 'alert', label: 'Geciken', value: d.lateCount, hint: tl(d.lateSum) })}</div>`
+    + (d.overdueMode ? '' : `<div class="mb">${card(null, form('payments.generate', `<div class="row" style="align-items:flex-end"><div class="grow small muted"><b style="color:#fff">${esc(d.periodLabel)}</b> dönemi için aidat ücreti tanımlı tüm aktif öğrencilere borç kaydı oluşturur. Mevcut kayıtlara dokunmaz.</div>
+      ${field('Son ödeme günü', inp('dueDay', 10, { type: 'number', extra: 'min="1" max="28" style="width:100px"' }))}${submit('Aidatları oluştur')}</div>`, { hidden: { period: d.period }, reload: true }))}</div>`)
+    + `<div class="row mb">${[['', 'Tümü']].concat(Object.entries(PAY_ST)).map(([k, v]) => btn(sl(k), v, (d.status || '') === k ? 'btn-p btn-sm' : 'btn-s btn-sm')).join('')}</div>`
+    + card(null, table(heads, rows, { empty: 'Kayıt yok' + (!d.overdueMode && !d.total ? ' — yukarıdan bu dönemin aidatlarını oluşturun' : '') + '.' }), { flush: true });
+}
+
+// ---------------------------------------------------------------- WhatsApp hatırlatmaları
+function candTable(items, source, extra, api, emptyText) {
+  if (!items.length) return empty(emptyText);
+  const pending = items.filter((c) => !c.skipReason && !c.sentAt).length;
+  const rows = items.map((c) => (api ? [`<input type="checkbox" name="keys[]" value="${esc(c.key)}" ${!c.skipReason && !c.sentAt ? 'checked' : ''} ${c.skipReason ? 'disabled' : ''}>`] : []).concat([
+    `<span class="b">${esc(c.studentName)}</span><div class="xs muted">${esc(c.recipientName)} · ${esc(c.phonePretty || 'telefon yok')}</div>`, `<span class="small">${esc(c.label)}</span>`,
+    `<span class="small muted">${esc(c.body)}</span>`, c.skipReason ? badge('red', c.skipReason) : c.sentAt ? badge('green', 'Gönderildi ' + new Date(c.sentAt).toLocaleDateString('tr-TR')) : badge('gray', 'Gönderilmedi'),
+    !c.skipReason && c.waUrl ? waBtn(Object.assign({ source, key: c.key }, extra), c.waUrl, !!c.sentAt, !api) : '']));
+  const heads = (api ? [['<input type="checkbox" data-toggleall checked aria-label="Tümünü seç">']] : []).concat([['Öğrenci / alıcı'], ['Konu'], ['Mesaj'], ['Durum'], ['']]);
+  const t = table(heads, rows);
+  const note = `<p class="xs muted" style="padding:10px 14px;margin:0;border-top:1px solid rgba(255,255,255,.08)">${pending ? pending + ' mesaj bekliyor. ' : items.some((c) => c.sentAt) ? 'Gönderilebilecek tüm mesajlar gönderildi. ' : 'Gönderilebilecek mesaj yok (telefon veya izin eksik). '}Düğmeye basınca WhatsApp mesaj yazılmış olarak açılır; siz sadece <b>Gönder</b>'e basın. Sistem kimin mesaj aldığını otomatik işaretler.</p>`;
+  return api ? form('reminders.send', t + `<div class="row" style="padding:10px 14px">${submit('Seçilenleri otomatik gönder')}<span class="xs muted">${pending} mesaj bekliyor.</span></div>`, { hidden: Object.assign({ source }, extra), reload: true }) : t + note;
+}
+async function viewReminders(r) {
+  const tab = ['aidat', 'ders', 'gecmis', 'ayarlar'].indexOf(r.q.sekme) >= 0 ? r.q.sekme : 'aidat';
+  const d = await call('reminders.view', { tab, days: r.q.gun, date: r.q.tarih });
+  const tabs = [['aidat', 'Aidat hatırlatma'], ['ders', 'Ders hatırlatma'], ['gecmis', 'Gönderim geçmişi'], ['ayarlar', 'Şablonlar ve ayarlar']];
+  let body = '';
+  if (tab === 'aidat') {
+    body = card(`Geciken aidatlar (${d.overdue.length})`, candTable(d.overdue, 'gecikti', {}, d.api, 'Geciken aidat yok.'), { flush: true })
+      + '<div class="mt"></div>' + card(`Son ödemesi yaklaşanlar (${d.upcoming.length})`, candTable(d.upcoming, 'yaklasan', { days: d.days }, d.api, `Önümüzdeki ${d.days} gün içinde son ödemesi olan ödenmemiş aidat yok.`),
+        { flush: true, act: `<form data-get="/bildirimler" class="row small"><input type="hidden" name="sekme" value="aidat">Önümüzdeki <input class="input" style="width:64px;padding:4px 8px" type="number" min="0" max="31" name="gun" value="${d.days}"> gün ${submit('Göster', 'btn-s btn-sm')}</form>` });
+  } else if (tab === 'ders') {
+    body = card(`${esc(d.dateLabel)} dersleri (${d.items.length} öğrenci)`, candTable(d.items, 'ders', { date: d.date }, d.api, 'Bu gün için ders yok.'),
+      { flush: true, act: `<form data-get="/bildirimler" class="row"><input type="hidden" name="sekme" value="ders"><input class="input" style="width:auto;padding:4px 8px" type="date" name="tarih" value="${d.date}">${submit('Göster', 'btn-s btn-sm')}</form>` });
+  } else if (tab === 'gecmis') {
+    const stT = { GONDERILDI: ['green', 'Otomatik gönderildi'], ELLE: ['green', 'Elle gönderildi'], TEST: ['amber', 'Test'], HATA: ['red', 'Hata'] };
+    const kind = { AIDAT: 'Aidat', DERS: 'Ders', KARNE: 'Karne', GENEL: 'Genel' };
+    body = card('Son 150 mesaj', table([['Zaman'], ['Alıcı'], ['Tür'], ['Mesaj'], ['Durum']], d.history.map((n) => [`<span class="xs nowrap">${new Date(n.createdAt).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' })}</span>`,
+      `<span class="small">${esc(n.user || '—')}<div class="muted">${esc(n.phone)}</div></span>`, `<span class="small">${kind[n.kind] || n.kind}</span>`, `<span class="small muted">${esc(n.body)}</span>`,
+      badge(stT[n.status][0], stT[n.status][1]) + (n.error ? `<div class="xs" style="color:#fca5a5">${esc(n.error)}</div>` : '')]), { empty: 'Henüz mesaj gönderilmedi.' }), { flush: true });
+  } else {
+    const s = d.settings;
+    const tpl = [['tpl_aidat', 'Aidat hatırlatma (son ödeme yaklaşınca)', '{veli} {ogrenci} {donem} {tutar} {sonOdeme}'], ['tpl_gecikti', 'Geciken aidat', '{veli} {ogrenci} {donem} {tutar} {sonOdeme}'],
+      ['tpl_ders', 'Ders hatırlatma', '{veli} {ogrenci} {tarih} {saat} {kort} {ders} {antrenor}'], ['tpl_karne', 'Gelişim karnesi hazır', '{veli} {ogrenci} {donem} {link}']];
+    body = `<div class="grid g2 lay" style="align-items:start">${card('Mesaj şablonları', form('settings.templates', `<div class="stack">${tpl.map(([k, l, v]) => field(l, `<textarea class="input" name="${k}" rows="3">${esc(s[k])}</textarea><span class="xs muted" style="display:block;margin-top:4px">Kullanılabilir alanlar: ${v}</span>`)).join('')}${submit('Şablonları kaydet')}</div>`))}
+      <div class="stack">${card('Gönderim yöntemi', d.api ? `<p>${badge('green', 'Otomatik')} ${esc(d.api)}</p>` : `<p>${badge('green', 'Elle gönderim (ücretsiz)')}</p><p class="xs muted">Mesajlar akademinin WhatsApp'ından, düğmeye basılarak gönderilir. Tamamen otomatik gönderim isterseniz Meta WhatsApp Business Cloud API kurulabilir (mesaj başına küçük bir ücret alınır, kurulum KURULUM.md'de).</p>`
+        + '<p class="xs muted">Velinin WhatsApp bildirim izni Kullanıcılar sayfasından ayarlanır; izni olmayan veliye mesaj hazırlanmaz.</p>')}
+      ${card('Otomatik gönderim (sadece API ile)', form('settings.automation', `<div class="stack">${chk('auto_enabled', s.auto_enabled === '1', 'Otomatik hatırlatmalar açık')}${chk('auto_lessons', s.auto_lessons === '1', 'Ertesi günün ders hatırlatmalarını da gönder')}
+        <div class="grid g2">${field('Son ödemeden kaç gün önce', inp('auto_dues_days_before', s.auto_dues_days_before, { type: 'number', extra: 'min="0" max="15"' }))}${field('Geciken aidat tekrar (gün)', inp('auto_overdue_repeat_days', s.auto_overdue_repeat_days, { type: 'number', extra: 'min="1" max="30"' }))}</div>${submit('Kaydet')}
+        <p class="xs muted" style="margin:0">${d.api ? '' : '<b>WhatsApp API ayarlı olmadığı için otomatik gönderim çalışmaz.</b> Gün ve tekrar ayarları elle gönderim listelerinde de kullanılır. '}Otomatik gönderim için Apps Script düzenleyicisinde <b>zamanlanmisGoreviKur</b> fonksiyonunu bir kez çalıştırın.</p></div>`))}</div></div>`;
+  }
+  return ph('WhatsApp hatırlatmaları', 'Velilere aidat ve ders hatırlatmaları')
+    + (d.api ? '' : `<p class="msg ok mb"><b>Ücretsiz elle gönderim modu:</b> “WhatsApp'ta gönder” düğmesine basınca mesaj hazır yazılmış olarak açılır, siz <b>Gönder</b>'e basarsınız.</p>`)
+    + `<div class="row mb">${tabs.map(([k, v]) => btn('/bildirimler' + qs({ sekme: k }), v, tab === k ? 'btn-p btn-sm' : 'btn-s btn-sm')).join('')}</div>` + body;
+}
+
+// ---------------------------------------------------------------- gelişim karnesi
+async function viewKarneList() {
+  const list = await call('karne.list'), without = list.filter((s) => !s.last).length;
+  return ph('Gelişim karnesi', list.length + ' öğrenci' + (without ? ' · ' + without + ' öğrencinin henüz karnesi yok' : ''))
+    + card(null, table([['Öğrenci'], ['Seviye'], ['Grup'], ['Son karne'], ['Ortalama', 'right'], ['', 'right']], list.map((s) => [`<a class="link" href="#/karne/${s.id}">${esc(s.name)}</a>`, LEVEL[s.level],
+      `<span class="small muted">${esc(s.groups.join(', ') || '—')}</span>`, s.last ? `<span class="small">${esc(s.last.term)}<div class="muted">${esc(s.last.dateLabel)}${s.last.coach ? ' · ' + esc(s.last.coach) : ''}</div></span>` : badge('amber', 'Yok'),
+      fmt1(s.last ? s.last.avg : null), btn(`/karne/${s.id}/yeni`, '+ Karne', 'btn-s btn-sm')]), { empty: ME.role === 'COACH' ? 'Gruplarınızda öğrenci yok.' : 'Öğrenci yok.' }), { flush: true });
+}
+function skillChart(cur, prev, prevLabel) {
+  return `<div class="row small muted mb" style="gap:16px"><span class="row" style="gap:6px"><i class="pk" style="display:inline-block;width:20px;height:8px;border-radius:9px;background:#bef264"></i>Bu karne</span>
+    ${prev ? `<span class="row" style="gap:6px"><i style="display:inline-block;width:2px;height:12px;background:rgba(255,255,255,.8)"></i>Önceki karne${prevLabel ? ' (' + esc(prevLabel) + ')' : ''}</span>` : ''}</div>`
+    + SKILL_GROUPS.map(([gName, skills]) => `<div class="xs b dim" style="margin:14px 0 8px;letter-spacing:.06em">${gName.toLocaleUpperCase('tr')}</div>` + skills.map(([k, label]) => {
+      const v = cur[k], p = prev ? prev[k] : undefined, delta = v !== undefined && p !== undefined ? v - p : null;
+      return `<div class="skill" title="${esc(label)}: ${v || '—'}/5"><span>${esc(label)}</span><div class="track"><div class="grid5">${'<span></span>'.repeat(6)}</div><div class="fill pk" style="width:${((v || 0) / 5) * 100}%"></div>${p !== undefined ? `<div class="prev pk" style="left:calc(${(p / 5) * 100}% - 1px);background:#aaa"></div>` : ''}</div>
+        <span class="right"><b>${v || '—'}</b><span class="dim">/5</span>${delta ? `<span class="xs b" style="margin-left:6px;color:${delta > 0 ? '#bef264' : '#fca5a5'}">${delta > 0 ? '▲' : '▼'}${Math.abs(delta)}</span>` : ''}</span></div>`;
+    }).join('')).join('')
+    + `<div class="skill xs dim" style="margin-top:4px"><span></span><div style="display:flex;justify-content:space-between"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div><span></span></div>`;
+}
+async function viewKarne(r) {
+  const d = await call('karne.get', { studentId: r.parts[1], id: r.q.id }), s = d.student, e = d.evaluations[d.index], prev = d.evaluations[d.index + 1];
+  const age = ageFrom(s.birthDate);
+  const notice = d.notice ? (d.notice.skipReason ? badge('red', d.notice.skipReason) : waBtn({ source: 'karne', id: e.id }, d.notice.waUrl, !!d.notice.sentAt, true)) : '';
+  const head = ph('Gelişim karnesi · ' + s.name, (age !== null ? age + ' yaş · ' : '') + LEVEL[s.level] + ' seviye',
+    (ME.role !== 'PARENT' ? btn('/karne', '← Liste') : '') + (e ? '<button class="btn btn-s" data-print>Yazdır / PDF</button>' : '') + (d.editable ? btn(`/karne/${s.id}/yeni`, '+ Yeni karne', 'btn-p') : ''));
+  if (!e) return head + card(null, empty('Henüz karne hazırlanmadı.' + (d.editable ? ` <a class="link" href="#/karne/${s.id}/yeni">İlk karneyi oluşturun.</a>` : '')));
+  const banner = r.q.yeni && d.editable ? `<div class="row between mb noprint" style="border-radius:14px;background:rgba(190,242,100,.15);padding:12px 16px;color:#ecfccb"><span>Karne kaydedildi. Veliye WhatsApp ile haber verilsin mi?</span>${notice}</div>` : '';
+  const sheet = `<article class="card" style="padding:20px"><header class="row between" style="align-items:flex-start;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:14px;margin-bottom:16px">
+      <div><div class="xs b" style="color:#d9f99d;letter-spacing:.08em">KAPAKLI TENİS AKADEMİ</div><h2 style="font-size:20px;margin-top:4px">${esc(s.name)}</h2><div class="small muted">${esc(e.term)} gelişim karnesi · ${esc(e.dateLabel)}</div></div>
+      <div class="right"><div class="xs muted">Genel ortalama</div><div style="font-size:26px;font-weight:700">${fmt1(e.avg)}<span class="small dim">/5</span></div><div class="xs muted">Antrenör: ${esc(e.coach || '—')}</div></div></header>
+    ${skillChart(e.scores, prev ? prev.scores : null, prev ? prev.term : null)}
+    <div class="grid g3 mt">${[['Güçlü yönleri', e.strengths], ['Geliştirmesi gerekenler', e.improve], ['Sonraki dönem hedefleri', e.goals]].map(([t, v]) => `<div class="note"><div class="xs b dim" style="margin-bottom:4px">${t}</div><div class="pre">${esc(v || '—')}</div></div>`).join('')}</div>
+    <p class="xs muted mt">Toplam katıldığı ders: ${d.attended} · Puanlama: 1 Gelişmeli · 2 Temel · 3 İyi · 4 Çok iyi · 5 Mükemmel</p></article>`;
+  const side = `<div class="stack noprint">${card(`Tüm karneler (${d.evaluations.length})`, d.evaluations.map((x, i) => `<div class="list-row between"><a class="${i === d.index ? 'b' : 'link'}" href="#/karne/${s.id}?id=${x.id}">${esc(x.term)}</a><span class="xs muted">${esc(x.dateLabel)} · ${fmt1(x.avg)}</span></div>`).join(''))}
+    ${d.editable && !r.q.yeni ? card('İşlemler', `<div class="row between"><span class="small">Veliye karne bildirimi</span>${notice}</div>${d.canDelete ? `<div class="mt">${act('karne.remove', { id: e.id }, 'Karneyi sil', 'btn-d btn-w', 'Bu karne silinsin mi?').replace('data-act=', `data-go="/karne/${s.id}" data-act=`)}</div>` : ''}`) : ''}</div>`;
+  return head + banner + `<div class="grid g3" style="align-items:start"><div class="span2">${sheet}</div>${side}</div>`;
+}
+async function viewKarneNew(r) {
+  const d = await call('karne.form', { studentId: r.parts[1] }), last = d.last ? d.last.scores : {};
+  const groups = SKILL_GROUPS.map(([gName, skills]) => card(gName, skills.map(([k, label]) => `<fieldset class="list-row between" style="border:0;margin:0"><legend class="hidden">${esc(label)}</legend><span class="b">${esc(label)}</span>
+    <div class="seg">${[1, 2, 3, 4, 5].map((n) => `<label title="${SCORE[n]}"><input type="radio" name="skill_${k}" value="${n}" ${last[k] === n ? 'checked' : ''} required><span>${n}</span></label>`).join('')}</div></fieldset>`).join(''))).join('<div class="mt"></div>');
+  return ph('Yeni karne · ' + d.student.name, d.last ? `Puanlar son karneden (${esc(d.last.term)}) getirildi; değişenleri güncelleyin.` : 'İlk karne', btn(`/karne/${d.student.id}`, 'Vazgeç'))
+    + `<div style="max-width:780px">${form('karne.save', card(null, `<div class="grid g3">${field('Dönem *', inp('term', d.term, { req: true }))}${field('Tarih', inp('date', d.today, { type: 'date' }))}
+      ${d.coaches.length ? field('Antrenör', sel('coachId', [['', '—']].concat(d.coaches.map((c) => [c.id, c.name])), d.last ? d.last.coachId : '')) : ''}</div>`) + '<div class="mt"></div>' + groups
+      + '<p class="xs muted">1 Gelişmeli · 2 Temel · 3 İyi · 4 Çok iyi · 5 Mükemmel</p>'
+      + card('Antrenör değerlendirmesi', `<div class="stack">${field('Güçlü yönleri', '<textarea class="input" name="strengths" rows="2"></textarea>')}${field('Geliştirmesi gerekenler', '<textarea class="input" name="improve" rows="2"></textarea>')}${field('Sonraki dönem hedefleri', '<textarea class="input" name="goals" rows="2"></textarea>')}</div>`)
+      + `<div class="mt">${submit('Karneyi kaydet')}</div>`, { hidden: { studentId: d.student.id }, go: '/karne/{studentId}?id={id}&yeni=1' })}</div>`;
+}
+
+// ---------------------------------------------------------------- ders saati raporu
+const RS = { YAPILDI: ['green', 'Yapıldı'], YOKLAMA_YOK: ['red', 'Yoklama alınmadı'], PLANLI: ['gray', 'Planlı'] };
+function downloadCsv(reports, period) {
+  const q = (c) => '"' + String(c).replace(/"/g, '""') + '"', h2 = (m) => (m / 60).toFixed(2).replace('.', ',');
+  const rows = [['Antrenör', 'Tarih', 'Başlangıç', 'Bitiş', 'Ders', 'Tür', 'Süre (saat)', 'Gelen öğrenci', 'Durum']];
+  reports.forEach((r) => r.rows.forEach((x) => rows.push([r.coach.name, x.date, x.start, x.end, x.title, x.type === 'GRUP' ? 'Grup' : 'Özel', h2(x.minutes), x.attendees ?? '', RS[x.status][1]])));
+  rows.push([]); rows.push(['ÖZET', '', '', '', '', '', 'Yapılan saat', 'Saatlik ücret', 'Hakediş (TL)']);
+  reports.forEach((r) => rows.push([r.coach.name, '', '', '', '', '', h2(r.totalMinutes), r.coach.hourlyRate, r.earnings]));
+  const blob = new Blob(['﻿' + rows.map((r) => r.map(q).join(';')).join('\r\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `ders-saatleri-${period}.csv`; document.body.appendChild(a); a.click(); a.remove();
+}
+let lastReports = null;
+async function viewReports(r) {
+  if (ME.role === 'COACH') return viewReport(r, true);
+  const d = await call('reports.list', { period: r.q.ay }); lastReports = d;
+  const total = d.reports.reduce((s, x) => s + x.totalMinutes, 0), earn = d.reports.reduce((s, x) => s + x.earnings, 0), miss = d.reports.reduce((s, x) => s + x.missing, 0);
+  return ph('Antrenör ders saati raporu', esc(d.periodLabel), btn('/raporlar' + qs({ ay: d.prev }), '← ' + d.prevLabel) + btn('/raporlar' + qs({ ay: d.next }), d.nextLabel + ' →')
+    + '<button class="btn btn-p" id="csvBtn">Excel\'e aktar (CSV)</button>' + act('reports.toSheet', { period: d.period }, 'E-Tabloya yaz', 'btn-s'))
+    + `<div class="grid g4 mb">${stat({ accent: 'green', icon: 'clock', label: 'Toplam ders saati', value: hours(total) })}${stat({ accent: 'blue', icon: 'check', label: 'Yapılan ders', value: d.reports.reduce((s, x) => s + x.lessonsDone, 0) })}
+      ${stat({ accent: 'gold', icon: 'wallet', label: 'Toplam hakediş', value: tl(earn), hint: 'Saatlik ücret × yapılan saat' })}${stat({ accent: 'red', icon: 'alert', label: 'Yoklaması alınmamış ders', value: miss, hint: 'Hakedişe dahil edilmedi' })}</div>`
+    + card(null, table([['Antrenör'], ['Grup dersi', 'right'], ['Özel ders', 'right'], ['Toplam', 'right'], ['Saatlik ücret', 'right'], ['Hakediş', 'right'], ['Uyarı']], d.reports.map((x) => [
+      `<a class="link" href="#/raporlar/${x.coach.id}?ay=${d.period}">${esc(x.coach.name)}</a>`, hours(x.groupMinutes), hours(x.privateMinutes), `<b>${hours(x.totalMinutes)}</b>`,
+      x.coach.hourlyRate ? tl(x.coach.hourlyRate) : `<a class="link xs" href="#/kullanicilar/${x.coach.id}">Ücret girin</a>`, `<b>${tl(x.earnings)}</b>`, x.missing ? badge('red', x.missing + ' ders yoklamasız') : '']), { empty: 'Antrenör kaydı yok.' }), { flush: true })
+    + '<p class="xs muted mt">Grup dersleri yoklaması alındığında “yapıldı” sayılır. Özel dersler, onaylı ve tarihi geçmiş kort rezervasyonlarından gelir.</p>';
+}
+async function viewReport(r, own) {
+  const d = await call('reports.coach', { coachId: own ? null : r.parts[1], period: r.q.ay }), x = d.report; lastReports = { reports: [x], period: d.period };
+  const base = own ? '/raporlar' : '/raporlar/' + x.coach.id;
+  return ph(own ? 'Ders saatlerim' : x.coach.name, esc(d.periodLabel), (own ? '' : btn('/raporlar' + qs({ ay: d.period }), '← Tüm antrenörler')) + btn(base + qs({ ay: d.prev }), '←') + btn(base + qs({ ay: d.next }), '→') + '<button class="btn btn-p" id="csvBtn">CSV</button>')
+    + `<div class="grid g4 mb">${stat({ accent: 'green', icon: 'clock', label: 'Toplam yapılan', value: hours(x.totalMinutes), hint: x.lessonsDone + ' ders' })}${stat({ accent: 'purple', icon: 'layers', label: 'Grup / özel', value: hours(x.groupMinutes) + ' / ' + hours(x.privateMinutes) })}
+      ${stat({ accent: 'gold', icon: 'wallet', label: 'Hakediş', value: tl(x.earnings), hint: x.coach.hourlyRate ? tl(x.coach.hourlyRate) + ' / saat' : 'Saatlik ücret tanımlı değil' })}${stat({ accent: 'red', icon: 'alert', label: 'Yoklaması alınmamış', value: x.missing, hint: x.upcoming ? x.upcoming + ' ders daha planlı' : '' })}</div>`
+    + card('Ders dökümü', table([['Tarih'], ['Saat'], ['Ders'], ['Tür'], ['Süre', 'right'], ['Gelen', 'right'], ['Durum']], x.rows.map((y) => Object.assign([`<span class="nowrap">${esc(y.dateLabel)}</span>`, `<span class="mono xs">${y.start}–${y.end}</span>`, esc(y.title), y.type === 'GRUP' ? 'Grup' : 'Özel', hours(y.minutes), y.attendees ?? '—', badge(RS[y.status][0], RS[y.status][1])], { cls: y.status === 'PLANLI' ? 'dimrow' : '' })), { empty: 'Bu ay ders yok.' }), { flush: true });
+}
+function afterReports() { const b = $('#csvBtn'); if (b) b.onclick = () => lastReports && downloadCsv(lastReports.reports, lastReports.period); }
+
+// ---------------------------------------------------------------- profil
+async function viewProfile() {
+  return ph('Hesabım', `${esc(ME.name)} · ${esc(ME.email)} · ${ROLE[ME.role]}`) + `<div style="max-width:440px">${card('Şifre değiştir', form('auth.changePassword', `<div class="stack">${field('Mevcut şifre', inp('current', '', { type: 'password', req: true, extra: 'autocomplete="current-password"' }))}${field('Yeni şifre (en az 8 karakter)', inp('next', '', { type: 'password', req: true, extra: 'minlength="8" autocomplete="new-password"' }))}${submit('Şifreyi değiştir')}</div>`, { reset: true }))}</div>`;
+}
+
+// ---------------------------------------------------------------- rota tablosu
+const VIEWS = [
+  [/^\/$/, viewHome, afterHome],
+  [/^\/ogrenciler$/, viewStudents], [/^\/ogrenciler\/yeni$/, viewStudentNew], [/^\/ogrenciler\/[^/]+$/, viewStudent],
+  [/^\/kullanicilar$/, viewUsers], [/^\/kullanicilar\/yeni$/, viewUserNew], [/^\/kullanicilar\/[^/]+$/, viewUser],
+  [/^\/gruplar$/, viewGroups], [/^\/gruplar\/yeni$/, viewGroupNew], [/^\/gruplar\/[^/]+$/, viewGroup],
+  [/^\/program$/, viewProgram], [/^\/yoklama$/, viewAttendanceDay], [/^\/yoklama\/[^/]+$/, viewAttendance],
+  [/^\/kortlar$/, viewCourts], [/^\/aidatlar$/, viewPayments], [/^\/bildirimler$/, viewReminders],
+  [/^\/karne$/, viewKarneList], [/^\/karne\/[^/]+\/yeni$/, viewKarneNew], [/^\/karne\/[^/]+$/, viewKarne],
+  [/^\/raporlar$/, viewReports, afterReports], [/^\/raporlar\/[^/]+$/, (r) => viewReport(r, false), afterReports],
+  [/^\/profil$/, viewProfile],
+];
+const s = document.createElement('style'); s.textContent = '.dimrow td { opacity: .55; }'; document.head.appendChild(s);
+render();
+</script>
+</body>
+</html>
