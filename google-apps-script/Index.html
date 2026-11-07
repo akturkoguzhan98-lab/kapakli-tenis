@@ -192,6 +192,14 @@ main { position: relative; z-index: 10; padding: 24px 20px 48px; } .wrap { max-w
 <div id="scene"></div>
 <div id="app"><div class="loading"><div><div class="spin"></div>Yükleniyor…</div></div></div>
 <div id="toast" class="toast hidden"></div>
+<script>
+  // Index.html eksik yapıştırıldıysa ana betik çalışmaz; kullanıcıya nedenini söyle
+  setTimeout(function () {
+    if (!window.__ktaReady) document.getElementById('app').innerHTML = '<div style="max-width:520px;margin:60px auto;padding:20px;border-radius:14px;background:#45130f;color:#fecaca;font:15px/1.5 system-ui">'
+      + '<b>Sistem yüklenemedi.</b><br>Index.html dosyası Apps Script\'e eksik yapıştırılmış olabilir. Dosyayı Not Defteri ile açıp Ctrl+A, Ctrl+C ile <b>tamamını</b> kopyalayın; '
+      + 'Apps Script\'teki Index dosyasında Ctrl+A ile eskisini seçip yapıştırın, kaydedin ve Dağıt → Dağıtımları yönet → ✏️ → Yeni sürüm ile yeniden yayınlayın.</div>';
+  }, 8000);
+</script>
 
 <script>
 /* =====================================================================
@@ -246,15 +254,20 @@ let TOKEN = null, ME = null;
 try { TOKEN = localStorage.getItem('kta_token'); } catch (e) {}
 function setToken(t) { TOKEN = t; try { t ? localStorage.setItem('kta_token', t) : localStorage.removeItem('kta_token'); } catch (e) {} }
 
+const NO_GOOGLE = 'Bu sayfa Google Apps Script dışında açılmış. Index.html dosyası tek başına (bilgisayarda çift tıklayarak ya da hosting\'e yükleyerek) çalışmaz: '
+  + 'Apps Script\'te Dağıt → Yeni dağıtım ile verilen https://script.google.com/macros/s/…/exec adresini açın. Hosting\'e yüklenecek dosya, "hosting" klasöründeki küçük index.html\'dir.';
 function call(action, args) {
   return new Promise((resolve, reject) => {
+    if (!(window.google && google.script && google.script.run)) return reject(new Error(NO_GOOGLE));
+    const timer = setTimeout(() => reject(new Error('Sunucu 45 saniyedir yanıt vermiyor. İnternet bağlantınızı kontrol edip tekrar deneyin.')), 45000);
     google.script.run
       .withSuccessHandler((txt) => {
+        clearTimeout(timer);
         let r; try { r = JSON.parse(txt); } catch (e) { return reject(new Error('Sunucudan beklenmeyen yanıt.')); }
         if (r.auth) { setToken(null); ME = null; go('/giris'); return reject(new Error(r.error)); }
         r.ok ? resolve(r.data) : reject(new Error(r.error));
       })
-      .withFailureHandler((e) => reject(new Error('Sunucuya ulaşılamadı: ' + ((e && e.message) || e))))
+      .withFailureHandler((e) => { clearTimeout(timer); reject(new Error('Sunucu hatası: ' + ((e && e.message) || e) + ' — Apps Script düzenleyicisinde sol menüdeki "Yürütmeler" sayfasında ayrıntısını görebilirsiniz.')); })
       .api(action, args || {}, TOKEN);
   });
 }
@@ -369,8 +382,14 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { const m 
 
 // ---------------------------------------------------------------- çizim döngüsü
 let renderSeq = 0;
+function fatal(message) {
+  $('#app').innerHTML = `<div class="login">${loginScene()}<div class="box"><div class="card"><div class="card-b" style="padding:24px">
+    <h2 style="font-size:18px;margin-bottom:10px">Sistem açılamadı</h2><p class="msg err" style="margin:0">${esc(message)}</p>
+    <p class="mt"><button class="btn btn-p" onclick="render()">Tekrar dene</button></p></div></div></div></div>`;
+}
 async function render() {
   const seq = ++renderSeq;
+  const hadToken = !!TOKEN;
   const r = route(), app = $('#app');
   try {
     if (!TOKEN) {
@@ -393,11 +412,15 @@ async function render() {
     if (flashMsg) { toast(flashMsg[0], flashMsg[1]); flashMsg = null; }
   } catch (err) {
     if (seq !== renderSeq) return;
-    if (!TOKEN) return render();
+    if (hadToken && !TOKEN) return render(); // oturum düştü → giriş ekranı
+    if (!ME) return fatal(err.message);
     app.innerHTML = ME ? shell(card(null, `<p class="msg err">${esc(err.message)}</p><p class="mt"><a class="link" href="#/">Ana sayfaya dön</a></p>`)) : `<div class="loading"><p class="msg err">${esc(err.message)}</p></div>`;
-    if (ME) setupNav();
+    setupNav();
   }
 }
+// Beklenmeyen bir betik hatası olursa da ekranda göster ("Yükleniyor"da takılı kalmasın)
+window.addEventListener('error', (e) => { if ($('#app .loading')) fatal('Sayfada bir hata oluştu: ' + e.message); });
+window.addEventListener('unhandledrejection', (e) => { if ($('#app .loading')) fatal((e.reason && e.reason.message) || String(e.reason)); });
 
 // ---------------------------------------------------------------- olaylar: formlar ve düğmeler
 function formData(f) {
@@ -878,6 +901,7 @@ const VIEWS = [
   [/^\/profil$/, viewProfile],
 ];
 const s = document.createElement('style'); s.textContent = '.dimrow td { opacity: .55; }'; document.head.appendChild(s);
+window.__ktaReady = true;
 render();
 </script>
 </body>

@@ -51,7 +51,7 @@ function book_() {
   _book = SpreadsheetApp.getActiveSpreadsheet();
   if (!_book) {
     const id = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
-    if (!id) throw new Error('Veritabanı E-Tablosu bulunamadı. Betik bir E-Tabloya bağlı olmalı (KURULUM.md).');
+    if (!id) fail_('Veritabanı E-Tablosu bulunamadı. Apps Script projesi bir E-Tablonun içinden (E-Tablo açıkken Uzantılar → Apps Script) oluşturulmalı. script.google.com üzerinden ayrı bir proje açtıysanız, kodu E-Tablonun içindeki Apps Script\'e taşıyın.');
     _book = SpreadsheetApp.openById(id);
   }
   return _book;
