@@ -34,6 +34,9 @@ const NUMS = {
 };
 const BOOLS = { Users: ['active', 'notifyConsent'], Students: ['active'], Courts: ['indoor', 'active'], Groups: ['active'] };
 
+/** Sürüm: Index.html'deki SURUM ile aynı olmalı (farklıysa arayüz uyarı gösterir) */
+const SURUM = '2026.11.10-1';
+
 // ------------------------------------------------------------------ Web uygulaması girişi
 function doGet() {
   let title = DEFAULT_SETTINGS.academy_name;
@@ -285,7 +288,7 @@ const ACTIONS = {
   'auth.setup': { public: true, write: true, fn: authSetup_ },
   'auth.login': { public: true, write: true, fn: authLogin_ },
   'auth.logout': { public: true, write: true, fn: authLogout_ },
-  'auth.me': { fn: function (a, u) { return Object.assign(publicUser_(u), { brand: brand_() }); } },
+  'auth.me': { fn: function (a, u) { return Object.assign(publicUser_(u), { brand: brand_(), version: SURUM }); } },
   'auth.changePassword': { write: true, fn: changePassword_ },
   // panolar
   'dashboard': { fn: dashboard_ },
@@ -344,7 +347,7 @@ const ACTIONS = {
 };
 
 // ------------------------------------------------------------------ Giriş, kurulum, şifre
-function authStatus_() { return { needsSetup: rows_('Users').length === 0, brand: brand_() }; }
+function authStatus_() { return { needsSetup: rows_('Users').length === 0, brand: brand_(), version: SURUM }; }
 
 function createSession_(u) {
   const token = Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '');

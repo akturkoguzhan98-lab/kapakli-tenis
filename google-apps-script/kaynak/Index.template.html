@@ -313,11 +313,19 @@ fieldset.locked [type=submit] { display: none; }
 /* =====================================================================
    Uygulama
    ===================================================================== */
+const SURUM = '2026.11.10-1';
 const LOGO = __LOGO_DATA_URI__;
 /** Akademi adı ve logosu yönetici panelinden değiştirilebilir; son bilinen değer tarayıcıda saklanır (açılışta eski logo görünmesin) */
 let BRAND = { name: 'Kapaklı Tenis Akademi', logo: '' };
 try { const b = JSON.parse(localStorage.getItem('kta_brand') || 'null'); if (b && b.name) BRAND = b; } catch (e) {}
 document.title = BRAND.name;
+let versionWarned = false;
+/** Kod.gs ve Index.html farklı sürümdeyse (biri eski yapıştırılmışsa) bir kez uyar */
+function checkVersion(v) {
+  if (versionWarned || v === SURUM) return;
+  versionWarned = true;
+  setTimeout(() => toast('Uyarı: Kod.gs (' + (v || 'eski sürüm') + ') ile Index.html (' + SURUM + ') farklı sürümde. İkisini de son hâliyle yapıştırıp Yeni sürüm olarak dağıtın.', 'err'), 600);
+}
 function setBrand(b) {
   if (!b || !b.name) return;
   BRAND = { name: b.name, logo: b.logo || '' };
@@ -516,7 +524,7 @@ function shell(content) {
       <div class="acct"><button class="avatar ${sec.some((i) => active(i[0])) ? 'ring' : ''}" id="acctBtn" aria-label="Hesap menüsü" aria-haspopup="menu">${esc(initials)}</button>
         <div class="menu card hidden" id="acctMenu" role="menu"><div style="padding:4px 8px 8px"><div class="b">${esc(ME.name)}</div><div class="small muted">${ROLE[ME.role]}</div></div>
         ${sec.length ? '<hr>' + sec.map((i) => `<a class="mi ${active(i[0]) ? 'on' : ''}" href="#${i[0]}" role="menuitem">${ic(i[2], 15)} ${i[1]}</a>`).join('') + '<hr>' : '<hr>'}
-        <a class="mi" href="#/profil" role="menuitem">Şifre değiştir</a><button class="mi red" data-logout role="menuitem">Çıkış yap</button></div></div>
+        <a class="mi" href="#/profil" role="menuitem">Şifre değiştir</a><button class="mi red" data-logout role="menuitem">Çıkış yap</button><div class="xs dim" style="padding:6px 8px 2px">Sürüm ${SURUM}</div></div></div>
     </div></header>
     <main><div class="wrap">${content}</div></main>`;
 }
@@ -553,12 +561,12 @@ async function render() {
     if (!TOKEN) {
       const st = await call('auth.status');
       if (seq !== renderSeq) return;
-      setBrand(st.brand);
+      setBrand(st.brand); checkVersion(st.version);
       $('#scene').innerHTML = '';
       app.innerHTML = st.needsSetup ? viewSetup() : viewLogin();
       return;
     }
-    if (!ME) { ME = await call('auth.me'); setBrand(ME.brand); }
+    if (!ME) { ME = await call('auth.me'); setBrand(ME.brand); checkVersion(ME.version); }
     if (r.path === '/giris' || r.path === '/kurulum') { go('/'); return; }
     if (!$('#scene').innerHTML) $('#scene').innerHTML = courtScene();
     if (!$('header.top')) app.innerHTML = shell('<div class="loading"><div><div class="spin"></div>Yükleniyor…</div></div>');

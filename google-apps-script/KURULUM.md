@@ -63,6 +63,11 @@ antrenör `emre@kapaklitenis.com`, veli `ayse@ornek.com`.
 Kod değiştiğinde **Dağıt → Dağıtımları yönet → ✏️ (düzenle) → Sürüm: Yeni sürüm → Dağıt**.
 Böylece **adres değişmez**. ("Yeni dağıtım" yaparsanız yeni bir adres oluşur; hosting sayfasını da güncellemeniz gerekir.)
 
+**Güncelleme gerçekten yayında mı?** Sağ üstteki profil düğmesine basın; menünün en altında **Sürüm** yazar.
+Bu, son gönderilen dosyalardaki sürümle aynı olmalı. Kod.gs ile Index.html farklı sürümdeyse ekranda uyarı çıkar.
+Sürüm değişmiyorsa: (1) Kaydettikten sonra *Dağıtımları yönet → ✏️ → Yeni sürüm* yapılmamıştır ya da
+(2) hosting sayfasındaki adres eski bir dağıtımı gösteriyordur (*Yeni dağıtım* her seferinde yeni adres üretir).
+
 ## 6. WhatsApp hatırlatmaları
 
 Varsayılan **ücretsiz elle gönderim**dir: *WhatsApp* sayfasında “WhatsApp'ta gönder”e basınca mesaj hazır yazılmış
