@@ -35,7 +35,7 @@ const NUMS = {
 const BOOLS = { Users: ['active', 'notifyConsent'], Students: ['active'], Courts: ['indoor', 'active'], Groups: ['active'] };
 
 /** Sürüm: Index.html'deki SURUM ile aynı olmalı (farklıysa arayüz uyarı gösterir) */
-const SURUM = '2026.11.10-1';
+const SURUM = '2026.11.10-2';
 
 // ------------------------------------------------------------------ Web uygulaması girişi
 function doGet() {
