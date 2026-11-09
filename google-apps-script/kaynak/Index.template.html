@@ -173,7 +173,95 @@ main { position: relative; z-index: 10; padding: 24px 20px 48px; } .wrap { max-w
   .table td[data-label=""]::before { display: none; } .table td:first-child { display: block; text-align: left; font-size: 15px; padding-bottom: 6px; } .table td:first-child::before { display: none; }
   .table td > form, .table td > .row { display: inline-flex; justify-content: flex-end; }
   .skill { grid-template-columns: minmax(0,8rem) 1fr 4.5rem; }
+  .list-row > .grow { flex-basis: calc(100% - 120px); }
 }
+/* =====================================================================
+   3B CAM KATMANI — derinlik, ışık kenarı, parlama, eğilme
+   ===================================================================== */
+.wrap { perspective: 1600px; }
+main { overflow-x: clip; } /* açılış animasyonunda yana kaydırma çubuğu çıkmasın */
+/* daha şeffaf, daha yoğun bulanık cam + katmanlı gölge */
+.card { position: relative; isolation: isolate; background: linear-gradient(150deg, rgba(255,255,255,.13), rgba(255,255,255,.04) 38%, rgba(6,18,14,.42) 100%), rgba(10,24,19,.38);
+  border: 1px solid rgba(255,255,255,.1); -webkit-backdrop-filter: blur(26px) saturate(180%); backdrop-filter: blur(26px) saturate(180%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.28), inset 0 -1px 0 rgba(0,0,0,.4), inset 0 0 22px rgba(255,255,255,.035),
+    0 2px 4px rgba(0,0,0,.18), 0 14px 28px rgba(0,0,0,.28), 0 34px 70px -18px rgba(0,0,0,.6); }
+.card-h { border-bottom-color: rgba(255,255,255,.09); box-shadow: 0 1px 0 rgba(0,0,0,.25); }
+.menu.card { position: absolute; } /* hesap menüsü açılır kalsın */
+.glass { position: relative; isolation: isolate; background: linear-gradient(150deg, rgba(255,255,255,.18), rgba(255,255,255,.05) 45%, rgba(255,255,255,.02));
+  -webkit-backdrop-filter: blur(28px) saturate(190%); backdrop-filter: blur(28px) saturate(190%); border-color: rgba(255,255,255,.12);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.4), inset 0 -1px 0 rgba(0,0,0,.35), 0 10px 30px rgba(0,0,0,.35), 0 24px 60px -20px rgba(0,0,0,.6); }
+/* ışık alan cam kenarı (sol üst parlak, sağ alt koyu) */
+.card::before, .tile::before, .glass::before { content: ""; position: absolute; inset: -1px; border-radius: inherit; padding: 1.2px; pointer-events: none; z-index: 2;
+  background: linear-gradient(140deg, rgba(255,255,255,.7), rgba(255,255,255,.18) 22%, rgba(255,255,255,.04) 50%, rgba(255,255,255,.02) 70%, rgba(255,255,255,.28));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+/* fareyi izleyen parlama (içeriğin arkasında) */
+.card::after, .tile::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1; transition: opacity .3s;
+  background: radial-gradient(520px circle at var(--mx, 18%) var(--my, -10%), rgba(255,255,255,.12), transparent 45%); }
+.tile::after { z-index: -1; background: radial-gradient(240px circle at var(--mx, 25%) var(--my, 0%), rgba(255,255,255,.16), transparent 60%),
+  linear-gradient(170deg, rgba(255,255,255,.1), transparent 36%); }
+/* renkli kutular: 3 boyutlu eğilme */
+.t-blue, .t-purple, .t-gold, .t-green, .t-red { background-color: rgba(9,22,18,.82); }
+.tile { isolation: isolate; border-color: rgba(255,255,255,.14); transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(var(--lift, 0px));
+  transition: transform .5s cubic-bezier(.2,.8,.2,1), box-shadow .5s;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.45), inset 0 -2px 0 rgba(0,0,0,.25), inset 0 0 30px rgba(255,255,255,.06),
+    0 3px 6px rgba(0,0,0,.2), 0 16px 32px rgba(0,0,0,.3), 0 36px 70px -20px rgba(0,0,0,.65); }
+.tile .ico { position: absolute; transform: translate(calc(var(--tx, 0) * 7px), calc(var(--ty, 0) * 7px)); transition: transform .5s cubic-bezier(.2,.8,.2,1);
+  background: linear-gradient(150deg, rgba(255,255,255,.42), rgba(255,255,255,.1)); border: 1px solid rgba(255,255,255,.35);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 8px 18px rgba(0,0,0,.28); }
+.tile .val { text-shadow: 0 2px 0 rgba(0,0,0,.18), 0 8px 24px rgba(0,0,0,.35); }
+.tile.tilting { transition: transform .12s ease-out, box-shadow .3s; }
+.tile.tilting .ico { transition: transform .12s ease-out; }
+a.tile:hover { --lift: -4px; transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(var(--lift)); border-color: rgba(255,255,255,.3);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.55), inset 0 -2px 0 rgba(0,0,0,.25), 0 6px 10px rgba(0,0,0,.22), 0 24px 44px rgba(0,0,0,.36), 0 50px 90px -24px rgba(0,0,0,.7); }
+.bar { box-shadow: inset 0 1px 2px rgba(0,0,0,.35); } .bar i { background: linear-gradient(#fff, #e7ffd0); box-shadow: 0 0 12px rgba(255,255,255,.6); }
+/* üst menü */
+.topbar { box-shadow: inset 0 1px 0 rgba(255,255,255,.4), inset 0 -1px 0 rgba(0,0,0,.4), 0 12px 30px rgba(0,0,0,.4), 0 30px 60px -24px rgba(0,0,0,.7); }
+.pill { transition: background .2s, box-shadow .2s, transform .2s; }
+.pill:hover { transform: translateY(-1px); }
+.pill.on { background: linear-gradient(180deg, rgba(255,255,255,.32), rgba(255,255,255,.1)); border-color: rgba(255,255,255,.3);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6), inset 0 -1px 0 rgba(0,0,0,.25), 0 6px 14px rgba(0,0,0,.35); text-shadow: 0 1px 2px rgba(0,0,0,.35); }
+.brand img { box-shadow: 0 6px 14px rgba(0,0,0,.45), 0 0 0 2px rgba(255,255,255,.25); }
+.avatar { background: radial-gradient(circle at 32% 26%, #fef3c7, #fbbf24 30%, #f97316 62%, #9a3412); box-shadow: 0 0 0 2px rgba(255,255,255,.3), 0 6px 14px rgba(0,0,0,.45), inset 0 -3px 6px rgba(0,0,0,.25); }
+.avatar.ring { box-shadow: 0 0 0 2px #fff, 0 6px 14px rgba(0,0,0,.45), inset 0 -3px 6px rgba(0,0,0,.25); }
+/* düğmeler: basılabilir 3B */
+.btn { transition: transform .12s, box-shadow .12s, background .2s, filter .2s; }
+.btn-p { background: linear-gradient(180deg, #f7fee7, #d9f99d 45%, #a3e635); border-color: rgba(255,255,255,.6);
+  box-shadow: inset 0 1px 0 #fff, inset 0 -2px 0 rgba(63,98,18,.35), 0 3px 0 #4d7c0f, 0 10px 22px rgba(163,230,53,.32); }
+.btn-p:hover { background: linear-gradient(180deg, #fff, #ecfccb 45%, #bef264); transform: translateY(-1px); box-shadow: inset 0 1px 0 #fff, inset 0 -2px 0 rgba(63,98,18,.35), 0 4px 0 #4d7c0f, 0 14px 28px rgba(163,230,53,.4); }
+.btn-s { background: linear-gradient(180deg, rgba(255,255,255,.2), rgba(255,255,255,.06)); border-color: rgba(255,255,255,.22); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 3px 0 rgba(0,0,0,.35), 0 8px 18px rgba(0,0,0,.25); }
+.btn-s:hover { background: linear-gradient(180deg, rgba(255,255,255,.3), rgba(255,255,255,.1)); transform: translateY(-1px); }
+.btn-d { background: linear-gradient(180deg, rgba(248,113,113,.28), rgba(239,68,68,.1)); box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 3px 0 rgba(69,10,10,.6), 0 8px 18px rgba(0,0,0,.25); }
+.btn-d:hover { transform: translateY(-1px); }
+.btn:active:not(:disabled) { transform: translateY(2px); filter: brightness(.96); }
+.btn-p:active:not(:disabled) { box-shadow: inset 0 1px 0 #fff, 0 1px 0 #4d7c0f, 0 4px 10px rgba(163,230,53,.25); }
+.btn-s:active:not(:disabled), .btn-d:active:not(:disabled) { box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 1px 0 rgba(0,0,0,.35); }
+/* giriş alanları: içe gömük cam */
+.input { background: linear-gradient(180deg, rgba(0,0,0,.28), rgba(0,0,0,.12)); border-color: rgba(255,255,255,.14);
+  box-shadow: inset 0 2px 5px rgba(0,0,0,.4), inset 0 -1px 0 rgba(255,255,255,.06), 0 1px 0 rgba(255,255,255,.08); transition: border-color .2s, box-shadow .2s; }
+.input:focus { box-shadow: inset 0 2px 5px rgba(0,0,0,.4), 0 0 0 3px rgba(190,242,100,.25), 0 0 18px rgba(190,242,100,.18); }
+.seg { box-shadow: inset 0 2px 4px rgba(0,0,0,.35); border-color: rgba(255,255,255,.15); }
+.seg input:checked + span { background: linear-gradient(180deg, #2f8550, #1d5534); box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 2px 6px rgba(0,0,0,.35); }
+.seg input.no:checked + span { background: linear-gradient(180deg, #ef4444, #b91c1c); } .seg input.ex:checked + span { background: linear-gradient(180deg, #fbbf24, #d97706); }
+/* rozetler, etkinlikler, kort hücreleri */
+.badge { background-image: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,0)); box-shadow: inset 0 0 0 1px var(--r), inset 0 1px 0 rgba(255,255,255,.2), 0 2px 6px rgba(0,0,0,.2); }
+.ev, .cell:not(.c-free) { box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 3px 8px rgba(0,0,0,.22); transition: transform .15s; }
+a.ev:hover { transform: translateY(-1px) translateX(1px); }
+.table tbody tr { transition: background .15s; } .table tbody tr:hover { background: linear-gradient(90deg, rgba(255,255,255,.07), rgba(255,255,255,.02)); }
+.note { box-shadow: inset 0 1px 3px rgba(0,0,0,.3), 0 1px 0 rgba(255,255,255,.06); }
+.track .fill { box-shadow: 0 0 12px rgba(190,242,100,.5), inset 0 1px 0 rgba(255,255,255,.6); }
+.toast { -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 16px 40px rgba(0,0,0,.5); }
+.login .card { transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .6s cubic-bezier(.2,.8,.2,1); }
+.login .card.tilting { transition: transform .15s ease-out; }
+.login .logo { box-shadow: 0 24px 50px rgba(0,0,0,.5), 0 0 0 4px rgba(255,255,255,.2), 0 0 40px rgba(190,242,100,.18); }
+/* sayfa açılışı: kartlar derinlikten öne gelir */
+@keyframes pop3d { from { opacity: 0; transform: perspective(900px) rotateX(14deg) translateY(26px) scale(.97); } }
+main.enter .tile, main.enter .card { animation: pop3d .6s cubic-bezier(.2,.8,.2,1) backwards; animation-delay: calc(var(--i, 0) * 55ms); transform-origin: 50% 0; }
+@media (max-width: 640px) {
+  .card { -webkit-backdrop-filter: blur(14px) saturate(160%); backdrop-filter: blur(14px) saturate(160%); background: linear-gradient(150deg, rgba(255,255,255,.12), rgba(255,255,255,.03) 40%, rgba(6,18,14,.5)), rgba(10,24,19,.5); }
+  .table tr { background: linear-gradient(180deg, rgba(255,255,255,.04), transparent); }
+}
+@media (prefers-reduced-motion: reduce) { main.enter .tile, main.enter .card { animation: none; } .tile, .login .card { transform: none !important; } }
 /* ---------- yazdırma */
 @media print {
   @page { margin: 14mm; }
@@ -184,6 +272,8 @@ main { position: relative; z-index: 10; padding: 24px 20px 48px; } .wrap { max-w
   .ph > .row, .btn { display: none !important; } .grid { display: block !important; } .grid > * + * { margin-top: 12px; }
   .note { border: 1px solid #ddd; } .track .prev { background: #555 !important; box-shadow: none !important; } .pk { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #24663f !important; }
   .printonly { display: block !important; }
+  .card::before, .card::after, .tile::before, .tile::after, .glass::before { display: none !important; }
+  .card, .tile { transform: none !important; animation: none !important; }
 }
 .printonly { display: none; }
 </style>
@@ -292,6 +382,39 @@ function route() {
 }
 function go(path) { if (location.hash === '#' + path) render(); else location.hash = path; }
 window.addEventListener('hashchange', () => render());
+// ---------------------------------------------------------------- 3B cam: fareyle eğilme ve parlama
+let enteredPath = null;
+function markEnter(path) {
+  const m = $('main'); if (!m || path === enteredPath) return;
+  enteredPath = path;
+  m.querySelectorAll('.tile, .card').forEach((el, i) => el.style.setProperty('--i', Math.min(i, 10)));
+  m.classList.add('enter'); setTimeout(() => m.classList.remove('enter'), 1400);
+}
+(function () {
+  const fine = window.matchMedia && matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const calm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!fine) return;
+  let raf = 0, last = null, active = null;
+  const reset = (el) => { if (!el) return; el.classList.remove('tilting'); ['--rx', '--ry', '--tx', '--ty'].forEach((k) => el.style.removeProperty(k)); };
+  document.addEventListener('pointermove', (e) => {
+    last = e; if (raf) return;
+    raf = requestAnimationFrame(() => {
+      raf = 0; const ev = last;
+      const card = ev.target.closest && ev.target.closest('.card, .tile');
+      if (active && active !== card) { reset(active); active = null; }
+      if (!card) return;
+      const r = card.getBoundingClientRect();
+      const x = (ev.clientX - r.left) / r.width, y = (ev.clientY - r.top) / r.height;
+      card.style.setProperty('--mx', (x * 100).toFixed(1) + '%'); card.style.setProperty('--my', (y * 100).toFixed(1) + '%');
+      const tilt = card.classList.contains('tile') ? 9 : card.closest('.login') ? 4 : 0;
+      if (!tilt || calm) return;
+      active = card; card.classList.add('tilting');
+      card.style.setProperty('--rx', ((0.5 - y) * tilt).toFixed(2) + 'deg'); card.style.setProperty('--ry', ((x - 0.5) * tilt).toFixed(2) + 'deg');
+      card.style.setProperty('--tx', ((x - 0.5) * 2).toFixed(2)); card.style.setProperty('--ty', ((y - 0.5) * 2).toFixed(2));
+    });
+  }, { passive: true });
+  document.addEventListener('pointerleave', () => { reset(active); active = null; });
+})();
 
 let flashMsg = null;
 function toast(text, kind) {
@@ -418,6 +541,7 @@ async function render() {
     if (seq !== renderSeq) return;
     app.innerHTML = shell(html);
     setupNav();
+    markEnter(r.path);
     if (view && view[2]) view[2](r);
     if (flashMsg) { toast(flashMsg[0], flashMsg[1]); flashMsg = null; }
   } catch (err) {
@@ -534,7 +658,7 @@ async function viewHome() {
       <div id="pending"></div>
       <div class="grid g5" style="align-items:start">
         ${card('Bugünün programı', scheduleList(d.schedule, d.today, true), { cls: 'span3', act: '<a class="link small" href="#/program">Haftalık</a>' })}
-        <div class="stack span2" style="grid-column:span 2">
+        <div class="stack span2">
         ${card(`Onay bekleyen talepler (${d.pending.length})`, d.pending.length ? d.pending.map((r) => `<div class="list-row" style="display:block"><div class="b">${RES_TYPE[r.type]} · ${esc(r.court)}</div>
           <div class="small muted">${esc(r.dateLabel)} ${r.start}–${r.end} · ${esc(r.user)}${r.student ? ` (${esc(r.student)})` : ''}</div>${r.note ? `<div class="small muted"><i>“${esc(r.note)}”</i></div>` : ''}
           <div class="row mt-s">${act('reservations.approve', { id: r.id }, 'Onayla', 'btn-p btn-sm')}${act('reservations.cancel', { id: r.id }, 'Reddet', 'btn-d btn-sm', 'Talep reddedilsin mi?')}</div></div>`).join('') : empty('Bekleyen talep yok.'))}
