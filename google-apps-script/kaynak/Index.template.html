@@ -193,19 +193,28 @@ main { position: relative; z-index: 10; padding: 24px 20px 48px; } .wrap { max-w
 <div id="app"><div class="loading"><div><div class="spin"></div>Yükleniyor…</div></div></div>
 <div id="toast" class="toast hidden"></div>
 <script>
-  // Index.html eksik yapıştırıldıysa ana betik çalışmaz; kullanıcıya nedenini söyle
+  // Ana betik çalışmazsa (eksik yapıştırma, sözdizimi hatası) kullanıcıya nedenini ve teknik ayrıntıyı göster
+  window.__ktaErr = [];
+  window.addEventListener('error', function (e) { window.__ktaErr.push((e.message || 'Bilinmeyen hata') + (e.lineno ? ' (satır ' + e.lineno + ')' : '')); });
   setTimeout(function () {
-    if (!window.__ktaReady) document.getElementById('app').innerHTML = '<div style="max-width:520px;margin:60px auto;padding:20px;border-radius:14px;background:#45130f;color:#fecaca;font:15px/1.5 system-ui">'
-      + '<b>Sistem yüklenemedi.</b><br>Index.html dosyası Apps Script\'e eksik yapıştırılmış olabilir. Dosyayı Not Defteri ile açıp Ctrl+A, Ctrl+C ile <b>tamamını</b> kopyalayın; '
-      + 'Apps Script\'teki Index dosyasında Ctrl+A ile eskisini seçip yapıştırın, kaydedin ve Dağıt → Dağıtımları yönet → ✏️ → Yeni sürüm ile yeniden yayınlayın.</div>';
-  }, 8000);
+    if (window.__ktaReady) return;
+    var err = window.__ktaErr.join(' · ');
+    var cut = /end of input|Unexpected end|Unterminated|missing \) |Invalid or unexpected token/i.test(err);
+    var esc = function (t) { return String(t).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); };
+    document.getElementById('app').innerHTML = '<div style="max-width:560px;margin:60px auto;padding:20px;border-radius:14px;background:#45130f;color:#fecaca;font:15px/1.5 system-ui">'
+      + '<b>Sistem yüklenemedi.</b><br>'
+      + (cut || !err ? 'Index.html dosyası Apps Script\'e <b>eksik</b> yapıştırılmış görünüyor. Dosyayı Not Defteri ile açın, Ctrl+A ve Ctrl+C ile <b>tamamını</b> kopyalayın; Apps Script\'teki Index dosyasında Ctrl+A ile eskisini seçip yapıştırın. Yapıştırdıktan sonra dosyanın en altında <b>&lt;/html&gt;</b> satırı olmalı. Kaydedip Dağıt → Dağıtımları yönet → ✏️ → Yeni sürüm ile yayınlayın.'
+        : 'Sayfanın kodu bir hatayla durdu.')
+      + (err ? '<div style="margin-top:12px;padding:10px;border-radius:8px;background:rgba(0,0,0,.35);font:12px/1.4 ui-monospace,Consolas,monospace;color:#fde68a">Teknik ayrıntı: ' + esc(err) + '</div><div style="font-size:13px;margin-top:8px">Bu ekranın görüntüsünü destek için gönderebilirsiniz.</div>' : '')
+      + '</div>';
+  }, 6000);
 </script>
 
 <script>
 /* =====================================================================
    Uygulama
    ===================================================================== */
-const LOGO = "__LOGO_DATA_URI__";
+const LOGO = __LOGO_DATA_URI__;
 const LEVELS = ['BASLANGIC', 'ORTA', 'ILERI', 'PERFORMANS'];
 const LEVEL = { BASLANGIC: 'Başlangıç', ORTA: 'Orta', ILERI: 'İleri', PERFORMANS: 'Performans' };
 const DAY = { 1: 'Pazartesi', 2: 'Salı', 3: 'Çarşamba', 4: 'Perşembe', 5: 'Cuma', 6: 'Cumartesi', 7: 'Pazar' };
