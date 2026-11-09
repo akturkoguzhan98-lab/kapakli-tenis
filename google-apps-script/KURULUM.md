@@ -80,6 +80,9 @@ Karne bildirimindeki bağlantı varsayılan olarak web uygulaması adresidir. Ke
 
 ## Bilinmesi gerekenler
 
+- **Yetkiler:** Antrenörler yönetici ile **aynı yetkilere** sahiptir (öğrenci, grup, aidat, kullanıcı, WhatsApp, rapor…).
+  Fark sadece antrenörlerin gruplara/özel derslere antrenör olarak atanabilmesi ve ders saati raporunda yer almasıdır.
+  Veliler yalnızca kendi çocuklarını görür.
 - **Hız:** E-Tablo tabanlı olduğu için her sayfa yaklaşık 1–3 saniyede açılır.
 - **Aynı anda kullanım:** Apps Script aynı anda en fazla ~30 işlem çalıştırır; bir akademi için yeterlidir.
 - **E-Tabloyu elle düzenleme:** Mümkün ama dikkatli olun; `id` sütunlarını değiştirmeyin, satır silmeyin.

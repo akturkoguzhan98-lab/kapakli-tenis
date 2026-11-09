@@ -240,6 +240,9 @@ function auth_(token) {
   return u;
 }
 
+/** Yönetim yetkisi: yönetici ve antrenörler aynı yetkilere sahiptir */
+function adm_(u) { return !!u && (u.role === 'ADMIN' || u.role === 'COACH'); }
+
 function need_(user, roles) {
   if (roles.indexOf(user.role) < 0) fail_('Bu işlem için yetkiniz yok.');
 }
@@ -273,7 +276,7 @@ function api(action, args, token) {
   }
 }
 
-const ADMIN = ['ADMIN'], STAFF = ['ADMIN', 'COACH'];
+const ADMIN = ['ADMIN', 'COACH'], STAFF = ['ADMIN', 'COACH'];
 const ACTIONS = {
   // giriş / oturum
   'auth.status': { public: true, fn: authStatus_ },
@@ -475,7 +478,7 @@ function rangeSchedule_(dates, opt) {
 // ------------------------------------------------------------------ Panolar
 function dashboard_(a, u) {
   const today = today_();
-  if (u.role === 'ADMIN') {
+  if (adm_(u)) {
     const period = period_();
     const pays = rows_('Payments'), st = byId_('Students'), users = byId_('Users'), courts = byId_('Courts');
     const month = pays.filter(function (p) { return p.period === period; });
@@ -648,7 +651,7 @@ function userSave_(a, me) {
   const u = byId_('Users')[a.id];
   if (!u) fail_('Kullanıcı bulunamadı.');
   const active = a.active === true || a.active === 'on';
-  if (u.id === me.id && (role !== 'ADMIN' || !active)) fail_('Kendi yönetici yetkinizi kaldıramaz veya hesabınızı pasif yapamazsınız.');
+  if (u.id === me.id && (role === 'PARENT' || !active)) fail_('Kendi yönetim yetkinizi kaldıramaz veya hesabınızı pasif yapamazsınız.');
   if (clash && clash.id !== u.id) fail_('Bu e-posta başka bir kullanıcıda kayıtlı.');
   if (pw && pw.length < 8) fail_('Yeni şifre en az 8 karakter olmalı.');
   const patch = Object.assign({ name: name, email: email, role: role, active: active }, extra);
@@ -751,7 +754,7 @@ function scheduleWeek_(a, u) {
   const week = weekStart_(isDate_(a.week) ? a.week : today);
   const days = [0, 1, 2, 3, 4, 5, 6].map(function (i) { return addDays_(week, i); });
   let opt = {};
-  const onlyMine = u.role === 'COACH' && !a.all;
+  const onlyMine = u.role === 'COACH' && a.mine === true;
   if (onlyMine) opt = { coachId: u.id };
   if (u.role === 'PARENT') opt = { studentIds: rows_('Students').filter(function (s) { return s.parentId === u.id; }).map(function (s) { return s.id; }) };
   const by = rangeSchedule_(days, opt);
@@ -765,14 +768,13 @@ function scheduleWeek_(a, u) {
 function attendanceDay_(a, u) {
   const today = today_();
   const date = isDate_(a.date) ? a.date : today;
-  const items = rangeSchedule_([date], u.role === 'COACH' ? { coachId: u.id } : {})[date].filter(function (i) { return i.kind === 'GROUP'; });
+  const items = rangeSchedule_([date], {})[date].filter(function (i) { return i.kind === 'GROUP'; });
   return { date: date, dateLabel: dateLabel_(date), today: today, prev: addDays_(date, -1), next: addDays_(date, 1), items: items };
 }
 
 function attendanceGet_(a, u) {
   const g = byId_('Groups')[a.groupId];
   if (!g) fail_('Grup bulunamadı.');
-  if (u.role === 'COACH' && g.coachId !== u.id) fail_('Bu grup size ait değil.');
   const today = today_();
   let req = isDate_(a.date) ? a.date : today;
   if (req > today) req = today;
@@ -798,7 +800,6 @@ function attendanceSave_(a, u) {
   if (date > today_()) fail_('Gelecek tarihli derse yoklama alınamaz.');
   const g = byId_('Groups')[a.groupId];
   if (!g) fail_('Grup bulunamadı.');
-  if (u.role === 'COACH' && g.coachId !== u.id) fail_('Bu grup size ait değil.');
   if (dow_(date) !== g.dayOfWeek) fail_('Bu grubun o gün dersi yok.');
   const st = a.statuses || {};
   const entries = activeMembers_(g.id).map(function (m) {
@@ -832,16 +833,16 @@ function courtsDay_(a, u) {
       if (isParent && !own) return Object.assign(base, { hidden: true });
       return Object.assign(base, {
         id: r.id, user: nm_(users[r.userId]), coach: nm_(users[r.coachId]), student: fullName_(st[r.studentId]), note: r.note,
-        canCancel: u.role === 'ADMIN' || own || r.coachId === u.id,
+        canCancel: adm_(u) || own || r.coachId === u.id,
       });
     });
   let kids = [];
   if (isParent) kids = sortStudents_(rows_('Students').filter(function (s) { return s.parentId === u.id && s.active; }));
-  else if (u.role === 'ADMIN') kids = sortStudents_(rows_('Students').filter(function (s) { return s.active; }));
+  else if (adm_(u)) kids = sortStudents_(rows_('Students').filter(function (s) { return s.active; }));
   return {
     date: date, dateLabel: dateLabel_(date), prev: addDays_(date, -1), next: addDays_(date, 1),
     courts: courts.map(function (c) { return { id: c.id, name: c.name, surface: c.surface, indoor: c.indoor }; }),
-    allCourts: u.role === 'ADMIN' ? rows_('Courts').map(function (c) { return { id: c.id, name: c.name, surface: c.surface, indoor: c.indoor, active: c.active }; }) : [],
+    allCourts: adm_(u) ? rows_('Courts').map(function (c) { return { id: c.id, name: c.name, surface: c.surface, indoor: c.indoor, active: c.active }; }) : [],
     groups: groups, reservations: res, coaches: coachesList_(),
     kids: kids.map(function (s) { return { id: s.id, name: fullName_(s) }; }), openFrom: OPEN_FROM, openUntil: OPEN_UNTIL,
   };
@@ -867,7 +868,7 @@ function reservationCreate_(a, u) {
   if (date < today || (date === today && start < nowTime_())) fail_('Geçmiş saate rezervasyon yapılamaz.');
   const court = byId_('Courts')[a.courtId];
   if (!court || !court.active) fail_('Kort seçin.');
-  if (u.role === 'COACH') { type = 'OZEL_DERS'; coachId = u.id; }
+  if (u.role === 'COACH' && type === 'OZEL_DERS' && !coachId) coachId = u.id;
   if (type === 'OZEL_DERS' && !coachId && u.role !== 'PARENT') fail_('Özel ders için antrenör seçin.');
   if (u.role === 'PARENT' && studentId) {
     const s = byId_('Students')[studentId];
@@ -892,7 +893,7 @@ function reservationCreate_(a, u) {
 function reservationCancel_(a, u) {
   const r = byId_('Reservations')[a.id];
   if (!r) fail_('Rezervasyon bulunamadı.');
-  if (u.role !== 'ADMIN' && r.userId !== u.id && r.coachId !== u.id) fail_('Bu rezervasyonu iptal etme yetkiniz yok.');
+  if (!adm_(u) && r.userId !== u.id && r.coachId !== u.id) fail_('Bu rezervasyonu iptal etme yetkiniz yok.');
   update_('Reservations', r, { status: 'IPTAL' });
   return { message: 'Rezervasyon iptal edildi.' };
 }
@@ -1123,10 +1124,10 @@ function findCandidate_(a, u) {
   const st = settings_();
   if (a.source === 'karne') {
     const e = byId_('Evaluations')[a.id];
-    if (!e || (u.role === 'COACH' && e.coachId !== u.id)) fail_('Karne bulunamadı.');
+    if (!e) fail_('Karne bulunamadı.');
     return karneCandidate_(a.id);
   }
-  if (u.role !== 'ADMIN') fail_('Bu işlem için yetkiniz yok.');
+  if (!adm_(u)) fail_('Bu işlem için yetkiniz yok.');
   const list = a.source === 'gecikti' ? overdueDues_(st) : a.source === 'yaklasan' ? upcomingDues_(st, a.days === '' || a.days == null ? undefined : int_(a.days))
     : a.source === 'ders' && isDate_(a.date) ? lessonReminders_(a.date, st) : [];
   return list.filter(function (c) { return c.key === a.key; })[0];
@@ -1216,7 +1217,7 @@ function saveAutomation_(a) {
 
 // ------------------------------------------------------------------ Gelişim karnesi
 function canViewStudent_(u, studentId) {
-  if (u.role === 'ADMIN') return true;
+  if (adm_(u)) return true;
   const s = byId_('Students')[studentId];
   if (!s) return false;
   if (u.role === 'PARENT') return s.parentId === u.id;
@@ -1237,7 +1238,7 @@ function karneList_(a, u) {
   const groups = byId_('Groups'), users = byId_('Users');
   const members = rows_('GroupMembers');
   let list = rows_('Students').filter(function (s) { return s.active; });
-  if (u.role === 'COACH') list = list.filter(function (s) { return members.some(function (m) { return m.studentId === s.id && groups[m.groupId] && groups[m.groupId].coachId === u.id; }); });
+
   const evs = rows_('Evaluations');
   return sortStudents_(list).map(function (s) {
     const e = evs.filter(function (x) { return x.studentId === s.id; }).sort(function (x, y) { return x.date < y.date ? 1 : -1; })[0];
@@ -1265,7 +1266,7 @@ function karneGet_(a, u) {
   evs.forEach(function (e, i) { if (e.id === a.id) idx = i; });
   return {
     student: { id: s.id, name: fullName_(s), birthDate: s.birthDate, level: s.level }, evaluations: evs, index: idx, attended: attended,
-    editable: editable, canDelete: editable && evs[idx] ? (u.role === 'ADMIN' || evs[idx].coachId === u.id) : false,
+    editable: editable, canDelete: editable && evs[idx] ? (adm_(u) || evs[idx].coachId === u.id) : false,
     notice: editable && evs[idx] ? karneCandidate_(evs[idx].id) : null, api: !!whatsappApi_(),
   };
 }
@@ -1276,7 +1277,7 @@ function karneForm_(a, u) {
   const last = rows_('Evaluations').filter(function (e) { return e.studentId === s.id; }).sort(function (x, y) { return x.date < y.date ? 1 : -1; })[0];
   const t = today_(), y = Number(t.slice(0, 4)), m = Number(t.slice(5, 7));
   const term = m >= 9 ? y + ' Güz' : m === 1 ? (y - 1) + ' Güz' : m <= 6 ? y + ' Bahar' : y + ' Yaz';
-  return { student: { id: s.id, name: fullName_(s) }, last: last ? { term: last.term, coachId: last.coachId, scores: parseScores_(last.scores) } : null, term: term, today: t, coaches: u.role === 'ADMIN' ? coachesList_() : [] };
+  return { student: { id: s.id, name: fullName_(s) }, last: last ? { term: last.term, coachId: last.coachId, scores: parseScores_(last.scores) } : null, term: term, today: t, coaches: adm_(u) ? coachesList_() : [] };
 }
 
 function karneSave_(a, u) {
@@ -1292,14 +1293,13 @@ function karneSave_(a, u) {
   });
   const id = newId_();
   insert_('Evaluations', { id: id, date: date, term: term, scores: JSON.stringify(scores), strengths: opt_(a.strengths), improve: opt_(a.improve), goals: opt_(a.goals),
-    createdAt: nowIso_(), studentId: a.studentId, coachId: u.role === 'COACH' ? u.id : opt_(a.coachId) });
+    createdAt: nowIso_(), studentId: a.studentId, coachId: opt_(a.coachId) || (u.role === 'COACH' ? u.id : null) });
   return { id: id, studentId: a.studentId };
 }
 
 function karneRemove_(a, u) {
   const e = byId_('Evaluations')[a.id];
   if (!e) fail_('Karne bulunamadı.');
-  if (u.role === 'COACH' && e.coachId !== u.id) fail_('Bu karne size ait değil.');
   remove_('Evaluations', function (x) { return x.id === e.id; });
   return { studentId: e.studentId, message: 'Karne silindi.' };
 }
@@ -1352,7 +1352,7 @@ function coachReport_(coachId, period) {
 
 function reportsList_(a, u) {
   const period = isPeriod_(a.period) ? a.period : period_();
-  const ids = u.role === 'COACH' ? [u.id] : rows_('Users').filter(function (x) { return x.role === 'COACH'; }).sort(function (x, y) { return x.name.localeCompare(y.name, 'tr'); }).map(function (x) { return x.id; });
+  const ids = rows_('Users').filter(function (x) { return x.role === 'COACH'; }).sort(function (x, y) { return x.name.localeCompare(y.name, 'tr'); }).map(function (x) { return x.id; });
   return {
     period: period, periodLabel: periodLabel_(period), prev: addMonths_(period, -1), next: addMonths_(period, 1),
     prevLabel: periodLabel_(addMonths_(period, -1)), nextLabel: periodLabel_(addMonths_(period, 1)),
@@ -1361,7 +1361,7 @@ function reportsList_(a, u) {
 }
 
 function reportsCoach_(a, u) {
-  const coachId = u.role === 'COACH' ? u.id : a.coachId;
+  const coachId = a.coachId || (u.role === 'COACH' ? u.id : null);
   const period = isPeriod_(a.period) ? a.period : period_();
   const r = coachReport_(coachId, period);
   if (!r) fail_('Antrenör bulunamadı.');
@@ -1371,7 +1371,7 @@ function reportsCoach_(a, u) {
 /** Raporu bu E-Tablo içinde yeni bir sayfaya yazar (oradan Excel olarak indirilebilir) */
 function reportsToSheet_(a, u) {
   const data = reportsList_(a, u);
-  const name = 'Rapor ' + data.period + (u.role === 'COACH' ? ' ' + u.name : '');
+  const name = 'Rapor ' + data.period;
   const bk = book_();
   let sh = bk.getSheetByName(name);
   if (sh) sh.clear(); else sh = bk.insertSheet(name);

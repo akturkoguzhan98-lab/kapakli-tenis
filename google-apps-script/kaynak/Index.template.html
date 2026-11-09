@@ -232,9 +232,10 @@ const NAV = {
   ADMIN: [['/', 'Genel bakış', 'home'], ['/ogrenciler', 'Öğrenciler', 'users'], ['/gruplar', 'Gruplar', 'layers'], ['/program', 'Program', 'calendar'],
     ['/yoklama', 'Yoklama', 'check'], ['/kortlar', 'Kortlar', 'court'], ['/aidatlar', 'Aidatlar', 'wallet'], ['/bildirimler', 'WhatsApp', 'chat'], ['/karne', 'Karne', 'star'],
     ['/raporlar', 'Ders saati raporu', 'clock', 1], ['/kullanicilar', 'Kullanıcılar', 'user', 1]],
-  COACH: [['/', 'Bugün', 'home'], ['/program', 'Program', 'calendar'], ['/yoklama', 'Yoklama', 'check'], ['/karne', 'Karne', 'star'], ['/raporlar', 'Ders saatlerim', 'clock'], ['/kortlar', 'Kortlar', 'court']],
+  COACH: null, // antrenörler yönetici ile aynı menüyü kullanır
   PARENT: [['/', 'Çocuklarım', 'heart'], ['/program', 'Ders programı', 'calendar'], ['/kortlar', 'Kort rezervasyonu', 'court']],
 };
+NAV.COACH = NAV.ADMIN;
 const ICONS = {
   home: 'M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z', users: 'M9 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21c0-4 3-7 7-7s7 3 7 7M16 4a4 4 0 0 1 0 8M22 21c0-3-2-6-5-7',
   layers: 'M12 3l9 5-9 5-9-5zM3 13l9 5 9-5', calendar: 'M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM3 10h18M8 3v4M16 3v4',
@@ -566,7 +567,7 @@ async function viewHome() {
       ${r.mine ? act('reservations.cancel', { id: r.id }, 'İptal', 'btn-d btn-sm', 'Rezervasyon iptal edilsin mi?') : ''}</div>`).join('') : empty('Yaklaşan rezervasyon yok.'));
 }
 function afterHome() {
-  if (ME.role !== 'ADMIN') return;
+  if (ME.role === 'PARENT') return;
   call('dashboard.pending').then((n) => {
     const el = $('#pending'); if (!el || !(n.dues + n.lessons)) return;
     el.innerHTML = `<div class="row between mb" style="border:1px solid rgba(190,242,100,.3);background:rgba(190,242,100,.15);color:#ecfccb;border-radius:14px;padding:12px 16px">
@@ -676,15 +677,15 @@ async function viewGroup(r) {
 
 // ---------------------------------------------------------------- haftalık program
 async function viewProgram(r) {
-  const d = await call('schedule.week', { week: r.q.hafta, all: r.q.tum === '1' });
-  const link = (w) => '/program' + qs({ hafta: w, tum: r.q.tum });
+  const d = await call('schedule.week', { week: r.q.hafta, mine: r.q.benim === '1' });
+  const link = (w) => '/program' + qs({ hafta: w, benim: r.q.benim });
   const days = d.days.map((x, i) => `<div class="card day ${x.date === d.today ? 'today' : ''}"><div class="card-h" style="display:block"><div class="b">${DAY[i + 1]}</div><div class="xs muted">${esc(x.label)}</div></div>
     <div class="card-b" style="padding:8px">${x.items.length ? x.items.map((it) => {
       const c = it.kind === 'GROUP' ? 'ev-g' : it.resStatus === 'BEKLEMEDE' ? 'ev-w' : it.resType === 'OZEL_DERS' ? 'ev-p' : 'ev-k';
       const inner = `<div class="mono b">${it.start}–${it.end}</div><div class="b">${esc(it.title)}</div><div class="muted">${esc([it.court, it.coach].filter(Boolean).join(' · '))}</div>`;
       return ME.role !== 'PARENT' && it.groupId ? `<a class="ev ${c}" href="#/yoklama/${it.groupId}?tarih=${x.date}">${inner}</a>` : `<div class="ev ${c}">${inner}</div>`;
     }).join('') : '<div class="xs dim" style="text-align:center;padding:10px">—</div>'}</div></div>`).join('');
-  return ph(ME.role === 'PARENT' ? 'Ders programı' : 'Haftalık program', esc(d.label), (ME.role === 'COACH' ? btn('/program' + qs({ hafta: d.week, tum: d.onlyMine ? '1' : '' }), d.onlyMine ? 'Tüm akademi' : 'Sadece benim derslerim') : '')
+  return ph(ME.role === 'PARENT' ? 'Ders programı' : 'Haftalık program', esc(d.label), (ME.role === 'COACH' ? btn('/program' + qs({ hafta: d.week, benim: d.onlyMine ? '' : '1' }), d.onlyMine ? 'Tüm akademi' : 'Sadece benim derslerim') : '')
     + btn(link(d.prev), '← Önceki') + btn(link(d.thisWeek), 'Bu hafta') + btn(link(d.next), 'Sonraki →'))
     + `<div class="grid g7">${days}</div><div class="legend"><span><i style="background:#bef264"></i>Grup dersi</span><span><i style="background:#fb923c"></i>Özel ders</span><span><i style="background:#38bdf8"></i>Kort kiralama</span><span><i style="background:#fbbf24"></i>Onay bekliyor</span></div>`;
 }
@@ -720,10 +721,10 @@ async function viewCourts(r) {
   };
   const grid = d.courts.length ? `<div class="tw" style="padding:10px"><table class="cgrid"><thead><tr><th style="width:52px"></th>${d.courts.map((c) => `<th style="text-align:left" class="small">${esc(c.name)}<div class="xs dim" style="font-weight:400">${SURFACE[c.surface]}${c.indoor ? ' · Kapalı' : ''}</div></th>`).join('')}</tr></thead>
     <tbody>${hrs.map((h) => `<tr><td class="mono xs dim" style="text-align:right;vertical-align:top">${h}:00</td>${d.courts.map((c) => `<td style="vertical-align:top">${cell(c.id, h)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>` : empty('Aktif kort yok.');
-  const isP = ME.role === 'PARENT', isA = ME.role === 'ADMIN';
+  const isP = ME.role === 'PARENT', isA = ME.role !== 'PARENT';
   const resForm = form('reservations.create', `<div class="stack">${field('Kort', sel('courtId', d.courts.map((c) => [c.id, c.name]), ''))}
       <div class="grid g2">${field('Başlangıç', inp('startTime', '18:00', { type: 'time', req: true, extra: `step="1800" min="${d.openFrom}" max="${d.openUntil}"` }))}${field('Bitiş', inp('endTime', '19:00', { type: 'time', req: true, extra: `step="1800" min="${d.openFrom}" max="${d.openUntil}"` }))}</div>
-      ${ME.role !== 'COACH' ? field('Tür', sel('type', [['KIRALAMA', 'Kort kiralama'], ['OZEL_DERS', 'Özel ders']], 'KIRALAMA')) + field(isP ? 'Antrenör tercihi (özel ders için)' : 'Antrenör (özel ders için)', sel('coachId', [['', '—']].concat(d.coaches.map((c) => [c.id, c.name])), '')) : ''}
+      ${field('Tür', sel('type', [['KIRALAMA', 'Kort kiralama'], ['OZEL_DERS', 'Özel ders']], 'KIRALAMA')) + field(isP ? 'Antrenör tercihi (özel ders için)' : 'Antrenör (özel ders için)', sel('coachId', [['', '—']].concat(d.coaches.map((c) => [c.id, c.name])), ME.role === 'COACH' ? ME.id : ''))}
       ${d.kids.length ? field('Öğrenci', sel('studentId', [['', '—']].concat(d.kids.map((k) => [k.id, k.name])), '')) : ''}
       ${field('Not', inp('note', '', { ph: isP ? 'ör. 2 kişi oynayacağız' : '' }))}${submit(isP ? 'Talep gönder' : 'Rezervasyon yap')}
       ${isP ? '<p class="xs muted" style="margin:0">Talepler akademi onayından sonra kesinleşir.</p>' : ''}</div>`, { hidden: { date: d.date }, reload: true });
@@ -815,7 +816,7 @@ async function viewKarneList() {
   return ph('Gelişim karnesi', list.length + ' öğrenci' + (without ? ' · ' + without + ' öğrencinin henüz karnesi yok' : ''))
     + card(null, table([['Öğrenci'], ['Seviye'], ['Grup'], ['Son karne'], ['Ortalama', 'right'], ['', 'right']], list.map((s) => [`<a class="link" href="#/karne/${s.id}">${esc(s.name)}</a>`, LEVEL[s.level],
       `<span class="small muted">${esc(s.groups.join(', ') || '—')}</span>`, s.last ? `<span class="small">${esc(s.last.term)}<div class="muted">${esc(s.last.dateLabel)}${s.last.coach ? ' · ' + esc(s.last.coach) : ''}</div></span>` : badge('amber', 'Yok'),
-      fmt1(s.last ? s.last.avg : null), btn(`/karne/${s.id}/yeni`, '+ Karne', 'btn-s btn-sm')]), { empty: ME.role === 'COACH' ? 'Gruplarınızda öğrenci yok.' : 'Öğrenci yok.' }), { flush: true });
+      fmt1(s.last ? s.last.avg : null), btn(`/karne/${s.id}/yeni`, '+ Karne', 'btn-s btn-sm')]), { empty: 'Öğrenci yok.' }), { flush: true });
 }
 function skillChart(cur, prev, prevLabel) {
   return `<div class="row small muted mb" style="gap:16px"><span class="row" style="gap:6px"><i class="pk" style="display:inline-block;width:20px;height:8px;border-radius:9px;background:#bef264"></i>Bu karne</span>
@@ -851,7 +852,7 @@ async function viewKarneNew(r) {
     <div class="seg">${[1, 2, 3, 4, 5].map((n) => `<label title="${SCORE[n]}"><input type="radio" name="skill_${k}" value="${n}" ${last[k] === n ? 'checked' : ''} required><span>${n}</span></label>`).join('')}</div></fieldset>`).join(''))).join('<div class="mt"></div>');
   return ph('Yeni karne · ' + d.student.name, d.last ? `Puanlar son karneden (${esc(d.last.term)}) getirildi; değişenleri güncelleyin.` : 'İlk karne', btn(`/karne/${d.student.id}`, 'Vazgeç'))
     + `<div style="max-width:780px">${form('karne.save', card(null, `<div class="grid g3">${field('Dönem *', inp('term', d.term, { req: true }))}${field('Tarih', inp('date', d.today, { type: 'date' }))}
-      ${d.coaches.length ? field('Antrenör', sel('coachId', [['', '—']].concat(d.coaches.map((c) => [c.id, c.name])), d.last ? d.last.coachId : '')) : ''}</div>`) + '<div class="mt"></div>' + groups
+      ${d.coaches.length ? field('Antrenör', sel('coachId', [['', '—']].concat(d.coaches.map((c) => [c.id, c.name])), ME.role === 'COACH' ? ME.id : d.last ? d.last.coachId : '')) : ''}</div>`) + '<div class="mt"></div>' + groups
       + '<p class="xs muted">1 Gelişmeli · 2 Temel · 3 İyi · 4 Çok iyi · 5 Mükemmel</p>'
       + card('Antrenör değerlendirmesi', `<div class="stack">${field('Güçlü yönleri', '<textarea class="input" name="strengths" rows="2"></textarea>')}${field('Geliştirmesi gerekenler', '<textarea class="input" name="improve" rows="2"></textarea>')}${field('Sonraki dönem hedefleri', '<textarea class="input" name="goals" rows="2"></textarea>')}</div>`)
       + `<div class="mt">${submit('Karneyi kaydet')}</div>`, { hidden: { studentId: d.student.id }, go: '/karne/{studentId}?id={id}&yeni=1' })}</div>`;
@@ -870,7 +871,6 @@ function downloadCsv(reports, period) {
 }
 let lastReports = null;
 async function viewReports(r) {
-  if (ME.role === 'COACH') return viewReport(r, true);
   const d = await call('reports.list', { period: r.q.ay }); lastReports = d;
   const total = d.reports.reduce((s, x) => s + x.totalMinutes, 0), earn = d.reports.reduce((s, x) => s + x.earnings, 0), miss = d.reports.reduce((s, x) => s + x.missing, 0);
   return ph('Antrenör ders saati raporu', esc(d.periodLabel), btn('/raporlar' + qs({ ay: d.prev }), '← ' + d.prevLabel) + btn('/raporlar' + qs({ ay: d.next }), d.nextLabel + ' →')
