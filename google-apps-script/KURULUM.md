@@ -80,6 +80,10 @@ Karne bildirimindeki bağlantı varsayılan olarak web uygulaması adresidir. Ke
 
 ## Bilinmesi gerekenler
 
+- **Akademi adı ve logosu:** Sağ üstteki profil düğmesi → *Akademi adı ve logosu* sayfasından değiştirilir
+  (giriş ekranı, menü, sekme başlığı, karne ve WhatsApp mesajlarında kullanılır). Hosting sayfasını kullanıyorsanız
+  `hosting/index.html` içindeki `<title>` satırını da elle güncelleyin.
+- **Öğrenci bilgileri kilidi:** Kayıtlı öğrencinin bilgileri kilitli açılır; *Kilidi aç* → *Evet, düzenle* ile değiştirilebilir.
 - **Yetkiler:** Antrenörler yönetici ile **aynı yetkilere** sahiptir (öğrenci, grup, aidat, kullanıcı, WhatsApp, rapor…).
   Fark sadece antrenörlerin gruplara/özel derslere antrenör olarak atanabilmesi ve ders saati raporunda yer almasıdır.
   Veliler yalnızca kendi çocuklarını görür.

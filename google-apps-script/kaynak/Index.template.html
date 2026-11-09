@@ -174,6 +174,7 @@ main { position: relative; z-index: 10; padding: 24px 20px 48px; } .wrap { max-w
   .table td > form, .table td > .row { display: inline-flex; justify-content: flex-end; }
   .skill { grid-template-columns: minmax(0,8rem) 1fr 4.5rem; }
   .list-row > .grow { flex-basis: calc(100% - 120px); }
+  .check { min-height: 32px; }
 }
 /* =====================================================================
    3B CAM KATMANI — derinlik, ışık kenarı, parlama, eğilme
@@ -262,6 +263,14 @@ main.enter .tile, main.enter .card { animation: pop3d .6s cubic-bezier(.2,.8,.2,
   .table tr { background: linear-gradient(180deg, rgba(255,255,255,.04), transparent); }
 }
 @media (prefers-reduced-motion: reduce) { main.enter .tile, main.enter .card { animation: none; } .tile, .login .card { transform: none !important; } }
+/* onay penceresi ve kilit */
+.modal-bg { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: 16px; background: rgba(2,8,6,.55); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); animation: fadeIn .15s ease-out; }
+.modal { width: 100%; max-width: 420px; animation: pop3d .3s cubic-bezier(.2,.8,.2,1); background: linear-gradient(150deg, rgba(255,255,255,.14), rgba(255,255,255,.04) 40%, rgba(6,18,14,.6)), rgba(10,24,19,.82); }
+.modal-ico { flex: none; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; color: #fde68a; background: linear-gradient(150deg, rgba(251,191,36,.35), rgba(251,191,36,.1)); box-shadow: inset 0 1px 0 rgba(255,255,255,.35); }
+fieldset.lockable { border: 0; padding: 0; margin: 0; min-width: 0; }
+fieldset.locked .input, fieldset.locked .check { opacity: .62; cursor: not-allowed; }
+fieldset.locked [type=submit] { display: none; }
+.lock-note { margin: 0 0 14px; padding: 9px 12px; border-radius: 10px; font-size: 13px; color: #fde68a; background: rgba(251,191,36,.1); box-shadow: inset 0 0 0 1px rgba(252,211,77,.25); }
 /* ---------- yazdırma */
 @media print {
   @page { margin: 14mm; }
@@ -305,6 +314,21 @@ main.enter .tile, main.enter .card { animation: pop3d .6s cubic-bezier(.2,.8,.2,
    Uygulama
    ===================================================================== */
 const LOGO = __LOGO_DATA_URI__;
+/** Akademi adı ve logosu yönetici panelinden değiştirilebilir; son bilinen değer tarayıcıda saklanır (açılışta eski logo görünmesin) */
+let BRAND = { name: 'Kapaklı Tenis Akademi', logo: '' };
+try { const b = JSON.parse(localStorage.getItem('kta_brand') || 'null'); if (b && b.name) BRAND = b; } catch (e) {}
+document.title = BRAND.name;
+function setBrand(b) {
+  if (!b || !b.name) return;
+  BRAND = { name: b.name, logo: b.logo || '' };
+  document.title = BRAND.name;
+  try { localStorage.setItem('kta_brand', JSON.stringify(BRAND)); } catch (e) {}
+}
+const logoSrc = () => BRAND.logo || LOGO;
+function brandLines() {
+  const w = BRAND.name.split(' ');
+  return w.length > 1 ? [w.slice(0, -1).join(' '), w[w.length - 1]] : [BRAND.name, 'Yönetim paneli'];
+}
 const LEVELS = ['BASLANGIC', 'ORTA', 'ILERI', 'PERFORMANS'];
 const LEVEL = { BASLANGIC: 'Başlangıç', ORTA: 'Orta', ILERI: 'İleri', PERFORMANS: 'Performans' };
 const DAY = { 1: 'Pazartesi', 2: 'Salı', 3: 'Çarşamba', 4: 'Perşembe', 5: 'Cuma', 6: 'Cumartesi', 7: 'Pazar' };
@@ -321,12 +345,13 @@ const SCORE = { 1: 'Gelişmeli', 2: 'Temel', 3: 'İyi', 4: 'Çok iyi', 5: 'Müke
 const NAV = {
   ADMIN: [['/', 'Genel bakış', 'home'], ['/ogrenciler', 'Öğrenciler', 'users'], ['/gruplar', 'Gruplar', 'layers'], ['/program', 'Program', 'calendar'],
     ['/yoklama', 'Yoklama', 'check'], ['/kortlar', 'Kortlar', 'court'], ['/aidatlar', 'Aidatlar', 'wallet'], ['/bildirimler', 'WhatsApp', 'chat'], ['/karne', 'Karne', 'star'],
-    ['/raporlar', 'Ders saati raporu', 'clock', 1], ['/kullanicilar', 'Kullanıcılar', 'user', 1]],
+    ['/raporlar', 'Ders saati raporu', 'clock', 1], ['/kullanicilar', 'Kullanıcılar', 'user', 1], ['/ayarlar', 'Akademi adı ve logosu', 'gear', 1]],
   COACH: null, // antrenörler yönetici ile aynı menüyü kullanır
   PARENT: [['/', 'Çocuklarım', 'heart'], ['/program', 'Ders programı', 'calendar'], ['/kortlar', 'Kort rezervasyonu', 'court']],
 };
 NAV.COACH = NAV.ADMIN;
 const ICONS = {
+  gear: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
   home: 'M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z', users: 'M9 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21c0-4 3-7 7-7s7 3 7 7M16 4a4 4 0 0 1 0 8M22 21c0-3-2-6-5-7',
   layers: 'M12 3l9 5-9 5-9-5zM3 13l9 5 9-5', calendar: 'M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM3 10h18M8 3v4M16 3v4',
   check: 'M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9', court: 'M5 3h14a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM4 12h16M7 3v18M17 3v18M7 7.5h10M7 16.5h10M12 7.5v9',
@@ -486,7 +511,7 @@ function shell(content) {
   const prim = items.filter((i) => !i[3]), sec = items.filter((i) => i[3]);
   const initials = ME.name.split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toLocaleUpperCase('tr');
   return `<header class="top noprint"><div class="topbar glass">
-      <a class="brand" href="#/"><img src="${LOGO}" alt=""><span><b>Kapaklı Tenis</b><small>Akademi</small></span></a>
+      <a class="brand" href="#/"><img src="${logoSrc()}" alt=""><span><b>${esc(brandLines()[0])}</b><small>${esc(brandLines()[1])}</small></span></a>
       <nav class="pills" id="pills" aria-label="Ana menü">${prim.map((i) => `<a class="pill ${active(i[0]) ? 'on' : ''}" ${active(i[0]) ? 'data-on="1" aria-current="page"' : ''} href="#${i[0]}">${ic(i[2], 15)}${i[1]}</a>`).join('')}</nav>
       <div class="acct"><button class="avatar ${sec.some((i) => active(i[0])) ? 'ring' : ''}" id="acctBtn" aria-label="Hesap menüsü" aria-haspopup="menu">${esc(initials)}</button>
         <div class="menu card hidden" id="acctMenu" role="menu"><div style="padding:4px 8px 8px"><div class="b">${esc(ME.name)}</div><div class="small muted">${ROLE[ME.role]}</div></div>
@@ -528,11 +553,12 @@ async function render() {
     if (!TOKEN) {
       const st = await call('auth.status');
       if (seq !== renderSeq) return;
+      setBrand(st.brand);
       $('#scene').innerHTML = '';
       app.innerHTML = st.needsSetup ? viewSetup() : viewLogin();
       return;
     }
-    if (!ME) ME = await call('auth.me');
+    if (!ME) { ME = await call('auth.me'); setBrand(ME.brand); }
     if (r.path === '/giris' || r.path === '/kurulum') { go('/'); return; }
     if (!$('#scene').innerHTML) $('#scene').innerHTML = courtScene();
     if (!$('header.top')) app.innerHTML = shell('<div class="loading"><div><div class="spin"></div>Yükleniyor…</div></div>');
@@ -579,12 +605,13 @@ document.addEventListener('submit', async (e) => {
   }
   if (!f.dataset.api) return;
   e.preventDefault();
-  if (f.dataset.confirm && !confirm(f.dataset.confirm)) return;
+  if (f.dataset.confirm && !(await ask(f.dataset.confirm))) return;
   const msg = f.querySelector('.msg'), b = f.querySelector('[type=submit]');
   const label = b ? b.innerHTML : '';
   if (b) { b.disabled = true; b.innerHTML = 'Kaydediliyor…'; }
   try {
     const res = await call(f.dataset.api, formData(f));
+    if (res && res.brand) setBrand(res.brand);
     if (f.dataset.api === 'auth.login' || f.dataset.api === 'auth.setup') { setToken(res.token); ME = res.user; go('/'); render(); return; }
     if (f.dataset.go) { flashMsg = res && res.message ? [res.message] : null; go(f.dataset.go.replace(/\{(\w+)\}/g, (m, k) => (res && res[k]) || '')); return; }
     if (f.dataset.reload !== undefined) { flashMsg = [(res && res.message) || 'Kaydedildi.']; render(); return; }
@@ -605,7 +632,7 @@ document.addEventListener('click', async (e) => {
   }
   const a = e.target.closest('[data-act]');
   if (a) {
-    if (a.dataset.confirm && !confirm(a.dataset.confirm)) return;
+    if (a.dataset.confirm && !(await ask(a.dataset.confirm))) return;
     a.disabled = true;
     try {
       const res = await call(a.dataset.act, JSON.parse(a.dataset.args || '{}'));
@@ -623,13 +650,13 @@ document.addEventListener('click', async (e) => {
 // ---------------------------------------------------------------- giriş / kurulum
 function viewLogin() {
   return `<div class="login">${loginScene()}<div class="box">
-    <div class="head a-rise"><img class="logo" src="${LOGO}" alt="Kapaklı Tenis Akademi logosu"><h1 style="margin-top:16px;font-size:24px">Kapaklı Tenis Akademi</h1><p class="muted" style="margin:4px 0 0">Yönetim paneline giriş</p></div>
+    <div class="head a-rise"><img class="logo" src="${logoSrc()}" alt="${esc(BRAND.name)} logosu"><h1 style="margin-top:16px;font-size:24px">${esc(BRAND.name)}</h1><p class="muted" style="margin:4px 0 0">Yönetim paneline giriş</p></div>
     <div class="card a-rise2"><div class="card-b" style="padding:24px">${form('auth.login', `<div class="stack">${field('E-posta', inp('email', '', { type: 'email', req: true, extra: 'autocomplete="email"' }))}${field('Şifre', inp('password', '', { type: 'password', req: true, extra: 'autocomplete="current-password"' }))}${submit('Giriş yap', 'btn-p btn-w')}</div>`)}</div></div>
     <p class="small a-rise2" style="text-align:center;margin-top:16px;color:rgba(255,255,255,.8)">Hesabınız yoksa akademi yönetimiyle iletişime geçin.</p></div></div>`;
 }
 function viewSetup() {
   return `<div class="login">${loginScene()}<div class="box">
-    <div class="head a-rise"><img class="logo" src="${LOGO}" alt=""><h1 style="margin-top:16px;font-size:24px">Hoş geldiniz 🎾</h1><p class="muted" style="margin:6px 0 0">Kapaklı Tenis Akademi sistemi ilk kez açılıyor. Yönetici hesabınızı oluşturun.</p></div>
+    <div class="head a-rise"><img class="logo" src="${logoSrc()}" alt=""><h1 style="margin-top:16px;font-size:24px">Hoş geldiniz 🎾</h1><p class="muted" style="margin:6px 0 0">${esc(BRAND.name)} sistemi ilk kez açılıyor. Yönetici hesabınızı oluşturun.</p></div>
     <div class="card a-rise2"><div class="card-b" style="padding:24px">${form('auth.setup', `<div class="stack">${field('Ad soyad', inp('name', '', { req: true }))}${field('E-posta', inp('email', '', { type: 'email', req: true }))}${field('Şifre (en az 8 karakter)', inp('password', '', { type: 'password', req: true, extra: 'minlength="8" autocomplete="new-password"' }))}${field('Şifre (tekrar)', inp('password2', '', { type: 'password', req: true, extra: 'minlength="8" autocomplete="new-password"' }))}${submit('Yönetici hesabını oluştur', 'btn-p btn-w')}</div>`)}</div></div>
     <p class="small" style="text-align:center;margin-top:16px;color:rgba(255,255,255,.8)">Bu sayfa sadece bir kez, hiç kullanıcı yokken açılır.</p></div></div>`;
 }
@@ -731,11 +758,98 @@ async function viewStudent(r) {
     + `<div class="grid g4 mb">${stat({ accent: 'purple', icon: 'layers', label: 'Grup sayısı', value: d.groups.length, hint: d.groups.map((g) => DAY[g.dayOfWeek] + ' ' + g.startTime).join(', ') })}
       ${stat({ accent: 'green', icon: 'check', label: 'Devam (son 30 ders)', value: d.attendance.length ? '%' + Math.round(present / d.attendance.length * 100) : '—', hint: present + '/' + d.attendance.length + ' ders' })}
       ${stat({ accent: 'gold', icon: 'wallet', label: 'Aylık aidat', value: tl(s.monthlyFee) })}${stat({ accent: 'red', icon: 'alert', label: 'Açık bakiye', value: tl(debt) })}</div>
-    <div class="grid g2 lay" style="align-items:start">${card('Bilgiler', form('students.save', studentFields(s, d.parents, true) + `<div class="mt">${submit('Kaydet')}</div>`, { hidden: { id: s.id } }))}
+    <div class="grid g2 lay" style="align-items:start">${card('Bilgiler', `<p class="lock-note" id="stuLockNote">🔒 Bilgiler yanlışlıkla değişmesin diye kilitli. Düzenlemek için <b>Kilidi aç</b>’a basın.</p>`
+      + form('students.save', `<fieldset id="stuLock" class="lockable locked" disabled>${studentFields(s, d.parents, true)}<div class="mt">${submit('Kaydet')}</div></fieldset>`, { hidden: { id: s.id }, reload: true }),
+      { act: '<button type="button" class="btn btn-s btn-sm" data-unlock="stuLock">🔒 Kilidi aç</button>' })}
       <div class="stack">${card('Gruplar', d.groups.length ? d.groups.map((g) => `<div class="list-row between"><a class="link" href="#/gruplar/${g.id}">${esc(g.name)}</a><span class="small muted">${DAY[g.dayOfWeek]} ${g.startTime}–${g.endTime} · ${esc(g.coach || '—')}</span></div>`).join('') : empty('Gruba kayıtlı değil. <a class="link" href="#/gruplar">Gruplar</a> sayfasından ekleyin.'))}
       ${card('Aidat geçmişi', table([['Dönem'], ['Tutar'], ['Ödenen'], ['Durum']], d.payments.map((p) => [esc(p.periodLabel), tl(p.amount), `${tl(p.paidAmount)}${p.paidAtLabel ? `<div class="xs muted">${esc(p.paidAtLabel)} · ${PAY_M[p.method] || ''}</div>` : ''}`, badge(PAY_T[p.status], PAY_ST[p.status])])), { flush: true })}
       ${card('Yoklama geçmişi', d.attendance.length ? d.attendance.map((a) => `<div class="row between" style="margin-bottom:4px"><span>${esc(a.dateLabel)} <span class="small muted">· ${esc(a.group)}</span></span>${badge(ATT_T[a.status], ATT[a.status])}</div>`).join('') : empty('Kayıt yok.'))}</div></div>`;
 }
+
+// ---------------------------------------------------------------- akademi adı ve logosu
+async function viewBranding() {
+  if (ME.role === 'PARENT') throw new Error('Bu işlem için yetkiniz yok.');
+  return ph('Akademi adı ve logosu', 'Giriş ekranında, üst menüde, sekme başlığında ve WhatsApp mesajlarında kullanılır.')
+    + `<div style="max-width:620px">${card(null, form('settings.branding', `<div class="stack">
+      ${field('Akademi adı', inp('name', BRAND.name, { req: true, extra: 'maxlength="60"' }))}
+      <div><span class="label">Logo</span><div class="row" style="gap:16px;align-items:center">
+        <img id="logoPrev" src="${logoSrc()}" alt="" style="width:88px;height:88px;border-radius:50%;object-fit:cover;background:rgba(255,255,255,.08);box-shadow:0 10px 24px rgba(0,0,0,.4),0 0 0 3px rgba(255,255,255,.18)">
+        <div class="grow"><label class="btn btn-s" style="cursor:pointer">Resim seç<input type="file" accept="image/png,image/jpeg,image/webp" data-logo-file style="display:none"></label>
+          <p class="xs muted" id="logoInfo" style="margin:8px 0 0">PNG, JPG veya WEBP. Kare resim en iyi sonucu verir; otomatik küçültülür.</p></div></div>
+        <input type="hidden" name="logo" value="">
+        ${BRAND.logo ? `<div class="mt">${chk('resetLogo', false, 'Varsayılan logoya dön')}</div>` : ''}</div>
+      <p class="xs muted" style="margin:0">Mesaj şablonlarında akademi adı için <b>{akademi}</b> yazabilirsiniz; ad değişince mesajlar da güncellenir.</p>
+      <div>${submit('Kaydet')}</div></div>`, { reload: true }))}</div>`;
+}
+/** Seçilen logoyu tarayıcıda küçültür (E-Tablo hücresine sığsın diye en fazla ~45 bin karakter) */
+function shrinkImage(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      for (const size of [256, 220, 192, 160, 128, 96]) {
+        const k = Math.min(1, size / Math.max(img.width, img.height));
+        const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(img.width * k)); c.height = Math.max(1, Math.round(img.height * k));
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        for (const [type, q] of [['image/webp', 0.86], ['image/webp', 0.7], ['image/png'], ['image/jpeg', 0.85]]) {
+          const d = c.toDataURL(type, q);
+          if (d.indexOf('data:' + type) === 0 && d.length <= 45000) return resolve(d);
+        }
+      }
+      reject(new Error('Resim küçültülemedi. Daha basit veya küçük bir resim deneyin.'));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Bu dosya resim olarak açılamadı.')); };
+    img.src = url;
+  });
+}
+document.addEventListener('change', async (e) => {
+  const f = e.target.closest && e.target.closest('[data-logo-file]');
+  if (!f || !f.files || !f.files[0]) return;
+  const form = f.closest('form'), info = $('#logoInfo');
+  try {
+    const d = await shrinkImage(f.files[0]);
+    form.querySelector('input[name=logo]').value = d; $('#logoPrev').src = d;
+    const r = form.querySelector('input[name=resetLogo]'); if (r) r.checked = false;
+    info.textContent = 'Yeni logo hazır. Kaydet’e basınca uygulanır.';
+  } catch (err) { info.textContent = err.message; }
+});
+
+// ---------------------------------------------------------------- onay penceresi (Evet / Vazgeç)
+function ask(message, o) {
+  o = o || {};
+  return new Promise((resolve) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'modal-bg';
+    wrap.innerHTML = `<div class="card modal" role="dialog" aria-modal="true" aria-labelledby="askT"><div class="card-b" style="padding:22px">
+      <div class="row" style="gap:12px;align-items:flex-start;flex-wrap:nowrap"><span class="modal-ico">${ic(o.icon || 'alert', 20)}</span>
+      <div><h2 id="askT" style="font-size:16px">${esc(o.title || 'Emin misiniz?')}</h2><p class="muted" style="margin:6px 0 0">${esc(message)}</p></div></div>
+      <div class="row" style="justify-content:flex-end;margin-top:20px"><button type="button" class="btn btn-s" data-ask-no>${esc(o.no || 'Vazgeç')}</button><button type="button" class="btn ${o.danger ? 'btn-d' : 'btn-p'}" data-ask-yes>${esc(o.yes || 'Evet')}</button></div></div></div>`;
+    const done = (v) => { document.removeEventListener('keydown', key, true); wrap.remove(); resolve(v); };
+    const key = (e) => { if (e.key === 'Escape') { e.preventDefault(); done(false); } };
+    wrap.addEventListener('click', (e) => { if (e.target === wrap || e.target.closest('[data-ask-no]')) done(false); else if (e.target.closest('[data-ask-yes]')) done(true); });
+    document.addEventListener('keydown', key, true);
+    document.body.appendChild(wrap);
+    wrap.querySelector('[data-ask-yes]').focus();
+  });
+}
+
+// ---------------------------------------------------------------- öğrenci bilgileri kilidi
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-unlock]');
+  if (!b) return;
+  const fs = $('#' + b.dataset.unlock), note = $('#' + b.dataset.unlock + 'Note');
+  if (!fs) return;
+  if (fs.disabled) {
+    const ok = await ask('Öğrenci bilgilerini değiştirmek istiyor musunuz?', { title: 'Kilidi aç', yes: 'Evet, düzenle', icon: 'user' });
+    if (!ok) return;
+    fs.disabled = false; fs.classList.remove('locked');
+    b.innerHTML = '🔓 Vazgeç ve kilitle'; if (note) note.classList.add('hidden');
+    const first = fs.querySelector('input:not([type=hidden]), select, textarea'); if (first) first.focus();
+  } else {
+    fs.closest('form').reset(); fs.disabled = true; fs.classList.add('locked');
+    b.innerHTML = '🔒 Kilidi aç'; if (note) note.classList.remove('hidden');
+  }
+});
 
 // ---------------------------------------------------------------- kullanıcılar
 async function viewUsers(r) {
@@ -869,7 +983,7 @@ async function viewPayments(r) {
   const rows = d.rows.map((p) => {
     const rem = p.amount - p.paidAmount;
     const wa = rem > 0 ? (() => { const ph2 = p.parentPhone || p.studentPhone; const n = (ph2 || '').replace(/\D/g, '').replace(/^0090/, '').replace(/^90(?=\d{10}$)/, '').replace(/^0(?=\d{10}$)/, '');
-      return /^5\d{9}$/.test(n) ? `<a class="link xs" target="_blank" rel="noopener" href="https://wa.me/90${n}?text=${encodeURIComponent(`Sayın ${p.parent || p.student}, ${p.student} için ${p.periodLabel} aidatından ${tl(rem)} ödeme beklenmektedir. Kapaklı Tenis Akademi`)}">WhatsApp ile hatırlat ↗</a>` : ''; })() : '';
+      return /^5\d{9}$/.test(n) ? `<a class="link xs" target="_blank" rel="noopener" href="https://wa.me/90${n}?text=${encodeURIComponent(`Sayın ${p.parent || p.student}, ${p.student} için ${p.periodLabel} aidatından ${tl(rem)} ödeme beklenmektedir. ${BRAND.name}`)}">WhatsApp ile hatırlat ↗</a>` : ''; })() : '';
     const coll = rem > 0 ? form('payments.record', `<div class="row" style="justify-content:flex-end"><input class="input" style="width:100px;padding:5px 10px" type="number" name="amount" min="1" max="${rem}" value="${rem}" aria-label="Tutar">${sel('method', Object.entries(PAY_M), 'NAKIT', 'style="width:auto;padding:5px 10px" aria-label="Yöntem"')}${submit('Tahsil et', 'btn-p btn-sm')}</div>`, { hidden: { id: p.id }, reload: true })
       : act('payments.reset', { id: p.id }, 'Geri al', 'btn-s btn-sm', 'Tahsilat geri alınsın mı?');
     return [`<a class="link" href="#/ogrenciler/${p.studentId}">${esc(p.student)}</a>${p.parent ? `<div class="xs muted">${esc(p.parent)}${p.parentPhone ? ' · ' + esc(p.parentPhone) : ''}</div>` : ''}${wa}`]
@@ -881,7 +995,7 @@ async function viewPayments(r) {
     + `<div class="grid g4 mb">${stat({ accent: 'blue', icon: 'wallet', label: 'Beklenen', value: tl(d.expected), hint: d.total + ' kayıt' })}
       ${stat({ accent: 'green', icon: 'trend', label: 'Tahsil edilen', value: tl(d.collected), hint: d.expected ? '%' + Math.round(d.collected / d.expected * 100) : '', progress: d.expected ? d.collected / d.expected : 0 })}
       ${stat({ accent: 'gold', icon: 'clock', label: 'Kalan', value: tl(d.expected - d.collected) })}${stat({ accent: 'red', icon: 'alert', label: 'Geciken', value: d.lateCount, hint: tl(d.lateSum) })}</div>`
-    + (d.overdueMode ? '' : `<div class="mb">${card(null, form('payments.generate', `<div class="row" style="align-items:flex-end"><div class="grow small muted"><b style="color:#fff">${esc(d.periodLabel)}</b> dönemi için aidat ücreti tanımlı tüm aktif öğrencilere borç kaydı oluşturur. Mevcut kayıtlara dokunmaz.</div>
+    + (d.overdueMode ? '' : `<div class="mb">${card(null, form('payments.generate', `<div class="row" style="align-items:flex-end"><div class="grow small muted" style="min-width:220px"><b style="color:#fff">${esc(d.periodLabel)}</b> dönemi için aidat ücreti tanımlı tüm aktif öğrencilere borç kaydı oluşturur. Mevcut kayıtlara dokunmaz.</div>
       ${field('Son ödeme günü', inp('dueDay', 10, { type: 'number', extra: 'min="1" max="28" style="width:100px"' }))}${submit('Aidatları oluştur')}</div>`, { hidden: { period: d.period }, reload: true }))}</div>`)
     + `<div class="row mb">${[['', 'Tümü']].concat(Object.entries(PAY_ST)).map(([k, v]) => btn(sl(k), v, (d.status || '') === k ? 'btn-p btn-sm' : 'btn-s btn-sm')).join('')}</div>`
     + card(null, table(heads, rows, { empty: 'Kayıt yok' + (!d.overdueMode && !d.total ? ' — yukarıdan bu dönemin aidatlarını oluşturun' : '') + '.' }), { flush: true });
@@ -920,8 +1034,8 @@ async function viewReminders(r) {
       badge(stT[n.status][0], stT[n.status][1]) + (n.error ? `<div class="xs" style="color:#fca5a5">${esc(n.error)}</div>` : '')]), { empty: 'Henüz mesaj gönderilmedi.' }), { flush: true });
   } else {
     const s = d.settings;
-    const tpl = [['tpl_aidat', 'Aidat hatırlatma (son ödeme yaklaşınca)', '{veli} {ogrenci} {donem} {tutar} {sonOdeme}'], ['tpl_gecikti', 'Geciken aidat', '{veli} {ogrenci} {donem} {tutar} {sonOdeme}'],
-      ['tpl_ders', 'Ders hatırlatma', '{veli} {ogrenci} {tarih} {saat} {kort} {ders} {antrenor}'], ['tpl_karne', 'Gelişim karnesi hazır', '{veli} {ogrenci} {donem} {link}']];
+    const tpl = [['tpl_aidat', 'Aidat hatırlatma (son ödeme yaklaşınca)', '{veli} {ogrenci} {donem} {tutar} {sonOdeme} {akademi}'], ['tpl_gecikti', 'Geciken aidat', '{veli} {ogrenci} {donem} {tutar} {sonOdeme} {akademi}'],
+      ['tpl_ders', 'Ders hatırlatma', '{veli} {ogrenci} {tarih} {saat} {kort} {ders} {antrenor} {akademi}'], ['tpl_karne', 'Gelişim karnesi hazır', '{veli} {ogrenci} {donem} {link} {akademi}']];
     body = `<div class="grid g2 lay" style="align-items:start">${card('Mesaj şablonları', form('settings.templates', `<div class="stack">${tpl.map(([k, l, v]) => field(l, `<textarea class="input" name="${k}" rows="3">${esc(s[k])}</textarea><span class="xs muted" style="display:block;margin-top:4px">Kullanılabilir alanlar: ${v}</span>`)).join('')}${submit('Şablonları kaydet')}</div>`))}
       <div class="stack">${card('Gönderim yöntemi', d.api ? `<p>${badge('green', 'Otomatik')} ${esc(d.api)}</p>` : `<p>${badge('green', 'Elle gönderim (ücretsiz)')}</p><p class="xs muted">Mesajlar akademinin WhatsApp'ından, düğmeye basılarak gönderilir. Tamamen otomatik gönderim isterseniz Meta WhatsApp Business Cloud API kurulabilir (mesaj başına küçük bir ücret alınır, kurulum KURULUM.md'de).</p>`
         + '<p class="xs muted">Velinin WhatsApp bildirim izni Kullanıcılar sayfasından ayarlanır; izni olmayan veliye mesaj hazırlanmaz.</p>')}
@@ -961,7 +1075,7 @@ async function viewKarne(r) {
   if (!e) return head + card(null, empty('Henüz karne hazırlanmadı.' + (d.editable ? ` <a class="link" href="#/karne/${s.id}/yeni">İlk karneyi oluşturun.</a>` : '')));
   const banner = r.q.yeni && d.editable ? `<div class="row between mb noprint" style="border-radius:14px;background:rgba(190,242,100,.15);padding:12px 16px;color:#ecfccb"><span>Karne kaydedildi. Veliye WhatsApp ile haber verilsin mi?</span>${notice}</div>` : '';
   const sheet = `<article class="card" style="padding:20px"><header class="row between" style="align-items:flex-start;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:14px;margin-bottom:16px">
-      <div><div class="xs b" style="color:#d9f99d;letter-spacing:.08em">KAPAKLI TENİS AKADEMİ</div><h2 style="font-size:20px;margin-top:4px">${esc(s.name)}</h2><div class="small muted">${esc(e.term)} gelişim karnesi · ${esc(e.dateLabel)}</div></div>
+      <div><div class="xs b" style="color:#d9f99d;letter-spacing:.08em">${esc(BRAND.name.toLocaleUpperCase('tr'))}</div><h2 style="font-size:20px;margin-top:4px">${esc(s.name)}</h2><div class="small muted">${esc(e.term)} gelişim karnesi · ${esc(e.dateLabel)}</div></div>
       <div class="right"><div class="xs muted">Genel ortalama</div><div style="font-size:26px;font-weight:700">${fmt1(e.avg)}<span class="small dim">/5</span></div><div class="xs muted">Antrenör: ${esc(e.coach || '—')}</div></div></header>
     ${skillChart(e.scores, prev ? prev.scores : null, prev ? prev.term : null)}
     <div class="grid g3 mt">${[['Güçlü yönleri', e.strengths], ['Geliştirmesi gerekenler', e.improve], ['Sonraki dönem hedefleri', e.goals]].map(([t, v]) => `<div class="note"><div class="xs b dim" style="margin-bottom:4px">${t}</div><div class="pre">${esc(v || '—')}</div></div>`).join('')}</div>
@@ -1031,7 +1145,7 @@ const VIEWS = [
   [/^\/kortlar$/, viewCourts], [/^\/aidatlar$/, viewPayments], [/^\/bildirimler$/, viewReminders],
   [/^\/karne$/, viewKarneList], [/^\/karne\/[^/]+\/yeni$/, viewKarneNew], [/^\/karne\/[^/]+$/, viewKarne],
   [/^\/raporlar$/, viewReports, afterReports], [/^\/raporlar\/[^/]+$/, (r) => viewReport(r, false), afterReports],
-  [/^\/profil$/, viewProfile],
+  [/^\/profil$/, viewProfile], [/^\/ayarlar$/, viewBranding],
 ];
 const s = document.createElement('style'); s.textContent = '.dimrow td { opacity: .55; }'; document.head.appendChild(s);
 window.__ktaReady = true;

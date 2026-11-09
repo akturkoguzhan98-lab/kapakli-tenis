@@ -36,8 +36,10 @@ const BOOLS = { Users: ['active', 'notifyConsent'], Students: ['active'], Courts
 
 // ------------------------------------------------------------------ Web uygulaması girişi
 function doGet() {
+  let title = DEFAULT_SETTINGS.academy_name;
+  try { title = settings_().academy_name || title; } catch (e) { /* E-Tablo yoksa varsayılan ad */ }
   return HtmlService.createHtmlOutputFromFile('Index')
-    .setTitle('Kapaklı Tenis Akademi')
+    .setTitle(title)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
@@ -283,7 +285,7 @@ const ACTIONS = {
   'auth.setup': { public: true, write: true, fn: authSetup_ },
   'auth.login': { public: true, write: true, fn: authLogin_ },
   'auth.logout': { public: true, write: true, fn: authLogout_ },
-  'auth.me': { fn: function (a, u) { return publicUser_(u); } },
+  'auth.me': { fn: function (a, u) { return Object.assign(publicUser_(u), { brand: brand_() }); } },
   'auth.changePassword': { write: true, fn: changePassword_ },
   // panolar
   'dashboard': { fn: dashboard_ },
@@ -328,6 +330,7 @@ const ACTIONS = {
   'reminders.send': { roles: ADMIN, write: true, fn: remindersSend_ },
   'settings.templates': { roles: ADMIN, write: true, fn: saveTemplates_ },
   'settings.automation': { roles: ADMIN, write: true, fn: saveAutomation_ },
+  'settings.branding': { roles: ADMIN, write: true, fn: saveBranding_ },
   // karne
   'karne.list': { roles: STAFF, fn: karneList_ },
   'karne.get': { fn: karneGet_ },
@@ -341,7 +344,7 @@ const ACTIONS = {
 };
 
 // ------------------------------------------------------------------ Giriş, kurulum, şifre
-function authStatus_() { return { needsSetup: rows_('Users').length === 0 }; }
+function authStatus_() { return { needsSetup: rows_('Users').length === 0, brand: brand_() }; }
 
 function createSession_(u) {
   const token = Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '');
@@ -986,10 +989,11 @@ function paymentRemove_(a) {
 
 // ------------------------------------------------------------------ WhatsApp hatırlatmaları
 const DEFAULT_SETTINGS = {
-  tpl_aidat: 'Sayın {veli}, {ogrenci} için {donem} aidatı {tutar}. Son ödeme tarihi: {sonOdeme}. Kapaklı Tenis Akademi',
-  tpl_gecikti: 'Sayın {veli}, {ogrenci} için {donem} aidatından {tutar} ödeme bekleniyor (son ödeme: {sonOdeme}). Ödediyseniz bu mesajı dikkate almayınız. Kapaklı Tenis Akademi',
-  tpl_ders: 'Sayın {veli}, {ogrenci} için ders hatırlatması: {tarih} saat {saat}, {kort}. ({ders}) Kapaklı Tenis Akademi',
+  tpl_aidat: 'Sayın {veli}, {ogrenci} için {donem} aidatı {tutar}. Son ödeme tarihi: {sonOdeme}. {akademi}',
+  tpl_gecikti: 'Sayın {veli}, {ogrenci} için {donem} aidatından {tutar} ödeme bekleniyor (son ödeme: {sonOdeme}). Ödediyseniz bu mesajı dikkate almayınız. {akademi}',
+  tpl_ders: 'Sayın {veli}, {ogrenci} için ders hatırlatması: {tarih} saat {saat}, {kort}. ({ders}) {akademi}',
   tpl_karne: 'Sayın {veli}, {ogrenci} için {donem} gelişim karnesi hazırlandı. Veli panelinden inceleyebilirsiniz: {link}',
+  academy_name: 'Kapaklı Tenis Akademi', academy_logo: '',
   auto_enabled: '0', auto_dues_days_before: '3', auto_overdue_repeat_days: '7', auto_lessons: '1',
 };
 
@@ -1025,7 +1029,7 @@ function candidate_(kind, key, label, s, tpl, vars) {
   let r;
   if (p) r = { name: p.name, userId: p.id, phone: p.phone, skip: !p.active ? 'Veli hesabı pasif' : !p.notifyConsent ? 'Veli bildirim izni vermemiş' : null };
   else r = { name: fullName_(s), userId: null, phone: s.phone, skip: null };
-  const body = render_(tpl, Object.assign({ veli: r.name, ogrenci: fullName_(s) }, vars));
+  const body = render_(tpl, Object.assign({ veli: r.name, ogrenci: fullName_(s), akademi: settings_().academy_name }, vars));
   return {
     key: key, kind: kind, label: label, studentId: s.id, studentName: fullName_(s), recipientName: r.name, userId: r.userId,
     phone: r.phone, phonePretty: prettyPhone_(r.phone), body: body, waUrl: waLink_(r.phone, body),
@@ -1202,6 +1206,35 @@ function saveTemplates_(a) {
   ['tpl_aidat', 'tpl_gecikti', 'tpl_ders', 'tpl_karne'].forEach(function (k) { v[k] = str_(a[k]) || DEFAULT_SETTINGS[k]; });
   saveSettings_(v);
   return { message: 'Şablonlar kaydedildi.' };
+}
+
+/** Akademi adı ve logosu (giriş ekranı, menü, sekme başlığı, WhatsApp mesajları) */
+function brand_() {
+  const st = settings_();
+  return { name: st.academy_name || DEFAULT_SETTINGS.academy_name, logo: st.academy_logo || '' };
+}
+
+function saveBranding_(a) {
+  const name = str_(a.name).replace(/\s+/g, ' ');
+  if (name.length < 2 || name.length > 60) fail_('Akademi adı 2–60 karakter olmalı.');
+  const st = settings_();
+  const v = { academy_name: name };
+  if (a.resetLogo === true || a.resetLogo === 'on') v.academy_logo = '';
+  else if (str_(a.logo)) {
+    const logo = str_(a.logo);
+    if (!/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+\/=]+$/.test(logo)) fail_('Logo bir resim dosyası olmalı (PNG, JPG veya WEBP).');
+    if (logo.length > 48000) fail_('Logo çok büyük. Daha küçük bir resim seçin.');
+    v.academy_logo = logo;
+  }
+  // Kayıtlı mesaj şablonlarında eski ad geçiyorsa {akademi} ile değiştir; böylece yeni ad otomatik kullanılır
+  const old = st.academy_name;
+  if (old && old !== name) {
+    ['tpl_aidat', 'tpl_gecikti', 'tpl_ders', 'tpl_karne'].forEach(function (k) {
+      if (st[k] && st[k].indexOf(old) >= 0) v[k] = st[k].split(old).join('{akademi}');
+    });
+  }
+  saveSettings_(v);
+  return { message: 'Akademi bilgileri kaydedildi.', brand: brand_() };
 }
 
 function saveAutomation_(a) {
